@@ -916,6 +916,7 @@
     }
     /* Melhorias de UX, PWA e iOS */
     html { scroll-padding-top: calc(18px + env(safe-area-inset-top)); }
+    section[id] { scroll-margin-top: 80px; }
     body { padding-top: env(safe-area-inset-top); padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
     .app-header { padding-top: env(safe-area-inset-top); }
     .landing-intro { margin:0 0 24px; padding:26px; border-radius:18px; color:#fff; background:linear-gradient(125deg,#101b35,#1c4770); }
@@ -927,6 +928,16 @@
     .feature-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:10px; color:#fff; background:rgba(24,184,237,.25); font-size:22px; }
     .pmc-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:12px 0 18px; }
     .pmc-metrics>div { padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--soft-blue); } .pmc-metrics span { display:block; color:var(--muted); font-size:11px; } .pmc-metrics strong { display:block; margin-top:4px; font-size:22px; color:var(--ink); }
+    .pmc-tsb-line { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:4px; }
+    .pmc-metrics .pmc-tsb-line strong { margin:0; }
+    .pmc-tsb-status { display:inline-flex; align-items:center; min-height:22px; padding:3px 8px; border:1px solid transparent; border-radius:999px; font-size:10px; line-height:1.2; font-weight:800; }
+    .pmc-tsb-status.fresh { color:#166534; background:#dcfce7; border-color:#86efac; }
+    .pmc-tsb-status.optimized { color:#075985; background:#e0f2fe; border-color:#7dd3fc; }
+    .pmc-tsb-status.fatigue { color:#92400e; background:#fef3c7; border-color:#fcd34d; }
+    .pmc-tsb-status.balanced { color:var(--muted); background:var(--card); border-color:var(--line); }
+    :root[data-theme="dark"] .pmc-tsb-status.fresh { color:#bbf7d0; background:#153b2a; border-color:#276749; }
+    :root[data-theme="dark"] .pmc-tsb-status.optimized { color:#bae6fd; background:#12344a; border-color:#245b78; }
+    :root[data-theme="dark"] .pmc-tsb-status.fatigue { color:#fde68a; background:#493719; border-color:#755b24; }
     .pmc-chart { min-height:170px; overflow:hidden; } .pmc-chart svg { display:block; width:100%; height:auto; }
     .pmc-insight { margin:0 0 16px; padding:13px 15px; border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:12px; background:var(--soft-blue); color:var(--ink); font-size:13px; line-height:1.55; }
     .pmc-insight strong { display:block; margin-bottom:3px; color:var(--navy); font-size:14px; }
@@ -937,7 +948,12 @@
     .skeleton-stack { display:grid; gap:10px; margin:12px 0 16px; } .skeleton-stack span { display:block; height:18px; border-radius:8px; background:linear-gradient(90deg,var(--line) 25%,var(--soft-blue) 50%,var(--line) 75%); background-size:200% 100%; animation:skeletonPulse 1.35s ease-in-out infinite; }
     .skeleton-stack span:nth-child(2) { width:88%; height:48px; } .skeleton-stack span:nth-child(3) { width:72%; height:34px; } .skeleton-stack span:nth-child(4) { width:94%; height:22px; } .skeleton-stack.compact { grid-template-columns:repeat(2,minmax(0,1fr)); }
     @keyframes skeletonPulse { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
-    .workout-bar { position:relative; cursor:help; } .workout-bar:focus { outline:2px solid var(--blue); outline-offset:2px; }
+    .workout-bar { position:relative; cursor:help; }
+    #workoutBars .workout-bar { display:block; padding:0; border:0; appearance:none; -webkit-appearance:none; }
+    #workoutBars .workout-bar:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
+    #workoutBars .workout-bar:hover { filter:brightness(.9); }
+    .workout-bar-detail { min-height:42px; margin-top:12px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--soft-blue); color:var(--ink); font-size:12px; line-height:1.45; }
+    .workout-bar-detail:empty { display:none; }
     /* Coach IA: interface mais leve e com separação clara dos relatórios. */
     #coachAiSection { margin:24px 0 0; }
     #reportsSection { margin:26px 0 0; }
@@ -1320,7 +1336,7 @@
             <div id="workoutChartCard" hidden>
               <h3>Estrutura do treino</h3>
               <p class="chart-subtitle">Perfil estimado de intensidade · cada barra representa um trecho da sessão</p>
-              <div id="workoutBars" role="img" aria-label="Gráfico de barras da intensidade estimada do treino"></div>
+              <div id="workoutBars" role="group" aria-label="Gráfico de barras da intensidade estimada do treino"></div>
               <div id="workoutChartAxis"><span>Início</span><span id="workoutChartDuration">Fim</span></div>
               <div id="workoutChartLegend">
                 <span class="workout-legend-item"><svg class="legend-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="#38bdf8" stroke="none"/></svg>Leve</span>
@@ -1395,7 +1411,7 @@
           <section class="card pmc-card" id="pmcSection" data-nav-section="performance">
             <div class="card-heading"><div><h2>Gestão da Performance</h2><p>Condicionamento (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
             <div id="pmcMessage" class="notice" role="status" aria-live="polite">Carregando carga de treino...</div>
-            <div id="pmcMetrics" class="pmc-metrics"><div><span>Condicionamento · CTL</span><strong id="pmcCtl">—</strong></div><div><span>Fadiga · ATL</span><strong id="pmcAtl">—</strong></div><div><span>Forma · TSB</span><strong id="pmcTsb">—</strong></div></div>
+            <div id="pmcMetrics" class="pmc-metrics"><div><span>Condicionamento · CTL</span><strong id="pmcCtl">—</strong></div><div><span>Fadiga · ATL</span><strong id="pmcAtl">—</strong></div><div><span>Forma · TSB</span><div class="pmc-tsb-line"><strong id="pmcTsb">—</strong><span id="pmcTsbStatus" class="pmc-tsb-status balanced" aria-live="polite">Aguardando dados</span></div></div></div>
             <div id="pmcInsight" class="pmc-insight" role="status" aria-live="polite">A interpretação da sua evolução aparecerá aqui quando os dados forem carregados.</div>
             <div id="pmcChart" class="pmc-chart" role="img" aria-label="Gráfico de condicionamento, fadiga e forma nos últimos meses"></div><div class="four-week-legend pmc-legend"><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#0ea5e9" stroke="none"/></svg>CTL · Condicionamento</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#f59e0b" stroke="none"/></svg>ATL · Fadiga</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#22c55e" stroke="none"/></svg>TSB · Forma</span></div>
           </section>
@@ -2009,17 +2025,37 @@
     function renderWorkoutBars(markdown) {
       const bars=$("#workoutBars"),card=$("#workoutChartCard");if(!bars||!card)return;
       const stages=extractWorkoutStages(markdown),ftp=Number($("#workoutPower").value)||0;bars.replaceChildren();
-      let detail=$("#workoutBarDetail");if(!detail){detail=document.createElement("div");detail.id="workoutBarDetail";detail.className="workout-bar-detail";bars.after(detail);}
-      detail.textContent="Toque ou passe o cursor em um bloco para consultar intensidade, %FTP e watts estimados.";
+      let detail=$("#workoutBarDetail");
+      if(!detail){detail=document.createElement("div");detail.id="workoutBarDetail";detail.className="workout-bar-detail";detail.setAttribute("role","status");detail.setAttribute("aria-live","polite");bars.after(detail);}
+      const formatDuration=minutes=>{
+        const total=Math.round(minutes*10)/10;
+        if(total>=60){const hours=Math.floor(total/60),rest=Math.round((total-hours*60)*10)/10;return rest?hours+" h "+rest+" min":hours+" h";}
+        return total+" min";
+      };
+      const showDetail=info=>{detail.textContent=info;};
+      detail.textContent="Toque, clique ou passe o cursor sobre uma barra para ver a duração, o %FTP e a meta de potência.";
       if(stages.length){stages.forEach((stage,i)=>{
-        const pct=stage.pctLow==null?null:(stage.pctLow+stage.pctHigh)/2;
-        const low=stage.wLow!=null?stage.wLow:(stage.pctLow!=null&&ftp?Math.round(ftp*stage.pctLow/100):null);
-        const high=stage.wHigh!=null?stage.wHigh:(stage.pctHigh!=null&&ftp?Math.round(ftp*stage.pctHigh/100):null);
+        let pctLow=stage.pctLow,pctHigh=stage.pctHigh;
+        let low=stage.wLow,high=stage.wHigh;
+        if(low==null&&pctLow!=null&&ftp)low=Math.round(ftp*pctLow/100);
+        if(high==null&&pctHigh!=null&&ftp)high=Math.round(ftp*pctHigh/100);
+        if(pctLow==null&&low!=null&&ftp)pctLow=Math.round(low/ftp*100);
+        if(pctHigh==null&&high!=null&&ftp)pctHigh=Math.round(high/ftp*100);
+        const pct=pctLow==null?null:(pctLow+pctHigh)/2;
         const level=pct==null?(i===0||i===stages.length-1?"easy":"moderate"):pct<60?"easy":pct<88?"moderate":pct<106?"hard":"peak";
         const b=document.createElement("button");b.type="button";b.className="workout-bar "+level;b.style.height=(24+Math.min(110,pct==null?45:pct))+"px";
-        const info="Bloco "+(i+1)+" · "+stage.label+" · "+(stage.pctLow==null?"%FTP não informado":stage.pctLow+"–"+stage.pctHigh+"% FTP")+" · "+(low==null?"Watts indisponíveis":low+"–"+high+" W");
-        b.title=info;b.setAttribute("aria-label",info);["focus","mouseenter","click"].forEach(ev=>b.addEventListener(ev,()=>detail.textContent=info));bars.append(b);
-      });}else{for(let i=0;i<24;i++){const b=document.createElement("span");b.className="workout-bar moderate";b.style.height=(50+Math.sin(i/23*Math.PI)*55)+"px";b.title="Intensidade ilustrativa: detalhes não identificados no texto.";bars.append(b);}}
+        const durationText=formatDuration(stage.duration);
+        const pctText=pctLow==null?"%FTP não informado":(pctLow===pctHigh?pctLow+"% FTP":pctLow+"–"+pctHigh+"% FTP");
+        const wattsText=low==null?"Meta em watts não informada":(low===high?low+" W":low+"–"+high+" W");
+        const info="Bloco "+(i+1)+" · Duração: "+durationText+" · Intensidade: "+pctText+" · Meta: "+wattsText;
+        b.title=info;b.setAttribute("aria-label",info);b.setAttribute("aria-describedby","workoutBarDetail");
+        ["focus","mouseenter","click"].forEach(ev=>b.addEventListener(ev,()=>showDetail(info)));
+        b.addEventListener("mouseleave",()=>{if(document.activeElement!==b)detail.textContent="Selecione uma barra para consultar os detalhes do bloco.";});
+        bars.append(b);
+      });}else{
+        for(let i=0;i<24;i++){const b=document.createElement("span");b.className="workout-bar moderate";b.style.height=(50+Math.sin(i/23*Math.PI)*55)+"px";b.title="Intensidade ilustrativa: detalhes não identificados no texto.";bars.append(b);}
+        detail.textContent="As etapas não foram identificadas no texto do treino; este perfil é apenas ilustrativo.";
+      }
       $("#workoutChartDuration").textContent=stages.length?"Etapas identificadas · "+stages.length:"Intensidade ilustrativa";card.hidden=false;
     }
     function downloadWorkoutFile(extension) {
@@ -2499,6 +2535,12 @@
         const ctl=Number(latest.fitness), atl=Number(latest.fatigue), tsb=Number(latest.form);
         if (![ctl,atl,tsb].every(Number.isFinite)) throw new Error("Os dados mais recentes de CTL, ATL ou TSB estão incompletos.");
         $("#pmcCtl").textContent=ctl.toFixed(1); $("#pmcAtl").textContent=atl.toFixed(1); $("#pmcTsb").textContent=tsb.toFixed(1);
+        const tsbStatus=$("#pmcTsbStatus");
+        let tsbLabel="Equilíbrio",tsbClass="balanced";
+        if(tsb>5){tsbLabel="Fresco / Prontidão";tsbClass="fresh";}
+        else if(tsb>=-30&&tsb<=-10){tsbLabel="Zona Otimizada / Evolução";tsbClass="optimized";}
+        else if(tsb < -30){tsbLabel="Atenção / Alta Fadiga";tsbClass="fatigue";}
+        tsbStatus.textContent=tsbLabel;tsbStatus.className="pmc-tsb-status "+tsbClass;
         const previous=points[Math.max(0,points.length-8)];
         const previousCtl=Number(previous.fitness);
         const ctlChange=Number.isFinite(previousCtl)?ctl-previousCtl:0;
