@@ -922,6 +922,7 @@
     .pmc-chart { min-height:170px; overflow:hidden; } .pmc-chart svg { display:block; width:100%; height:auto; }
     .legend-svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
     .four-week-legend span { display:inline-flex; align-items:center; gap:5px; }
+    .four-week-embedded { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); } .four-week-embedded .card-heading h2 { font-size:16px; }
     .skeleton-stack { display:grid; gap:10px; margin:12px 0 16px; } .skeleton-stack span { display:block; height:18px; border-radius:8px; background:linear-gradient(90deg,var(--line) 25%,var(--soft-blue) 50%,var(--line) 75%); background-size:200% 100%; animation:skeletonPulse 1.35s ease-in-out infinite; }
     .skeleton-stack span:nth-child(2) { width:88%; height:48px; } .skeleton-stack span:nth-child(3) { width:72%; height:34px; } .skeleton-stack span:nth-child(4) { width:94%; height:22px; } .skeleton-stack.compact { grid-template-columns:repeat(2,minmax(0,1fr)); }
     @keyframes skeletonPulse { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
@@ -1337,21 +1338,7 @@
               <div class="weekly-stat"><span>Distância</span><strong id="weeklyDistance">—</strong></div>
               <div class="weekly-stat"><span>Horas de treino</span><strong id="weeklyHours">—</strong></div>
               <div class="weekly-stat"><span>Sessões</span><strong id="weeklySessions">—</strong></div>
-            </div>
-          </section>
-          <section class="card pmc-card" id="pmcSection">
-            <div class="card-heading"><div><h2>Performance Management Chart</h2><p>Fitness (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
-            <div id="pmcMessage" class="notice" role="status" aria-live="polite">Carregando carga de treino...</div>
-            <div id="pmcMetrics" class="pmc-metrics"><div><span>Fitness · CTL</span><strong id="pmcCtl">—</strong></div><div><span>Fadiga · ATL</span><strong id="pmcAtl">—</strong></div><div><span>Forma · TSB</span><strong id="pmcTsb">—</strong></div></div>
-            <div id="pmcChart" class="pmc-chart" role="img" aria-label="Gráfico de Fitness, Fadiga e Forma nos últimos seis meses"></div>
-          </section>
-
-
-
-        </aside>
-      </div>
-
-      <section class="card" id="fourWeekSummaryCard" style="margin-top:22px; margin-bottom:22px">
+      <div class="four-week-embedded" id="fourWeekSummaryCard">
         <div class="card-heading">
           <div>
             <h2>Resumo das últimas 4 semanas</h2>
@@ -1367,7 +1354,22 @@
         </div>
         <div id="fourWeekSummaryChart" class="four-week-chart" aria-label="Gráfico de barras 3D com TSS, horas de treino e distância por semana"></div>
         <p class="muted small">A altura das barras é proporcional ao maior valor de cada indicador nas quatro semanas. Os valores exibidos mantêm as unidades reais.</p>
-      </section>
+      </div>
+            </div>
+          </section>
+          <section class="card pmc-card" id="pmcSection">
+            <div class="card-heading"><div><h2>Performance Management Chart</h2><p>Fitness (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
+            <div id="pmcMessage" class="notice" role="status" aria-live="polite">Carregando carga de treino...</div>
+            <div id="pmcMetrics" class="pmc-metrics"><div><span>Fitness · CTL</span><strong id="pmcCtl">—</strong></div><div><span>Fadiga · ATL</span><strong id="pmcAtl">—</strong></div><div><span>Forma · TSB</span><strong id="pmcTsb">—</strong></div></div>
+            <div id="pmcChart" class="pmc-chart" role="img" aria-label="Gráfico de Fitness, Fadiga e Forma nos últimos seis meses"></div>
+          </section>
+
+
+
+        </aside>
+      </div>
+
+
 
           <!-- RELATÓRIOS -->
           <section class="card" id="reportsSection" data-nav-section="reports">
@@ -1943,38 +1945,53 @@
       flushParagraph(); closeList();
     }
 
-    function renderWorkoutBars(markdown) {
-      const bars = $("#workoutBars");
-      const card = $("#workoutChartCard");
-      if (!bars || !card) return;
-      const duration = Math.max(20, Number($("#workoutDuration")?.value) || 60);
-      const text = String(markdown || "").toLowerCase();
-      const interval = /interval|tiro|sprint|vo2|repetiç|repetic|4x|5x|6x|8x|limiar/.test(text);
-      const values = [];
-      const count = 24;
-      for (let i = 0; i < count; i++) {
-        const t = i / (count - 1);
-        let v;
-        if (t < .15) v = .28 + (t / .15) * .22;
-        else if (t > .86) v = .72 - ((t - .86) / .14) * .43;
-        else if (interval) {
-          const phase = (t - .15) / .71;
-          v = (.48 + (Math.sin(phase * Math.PI * 8) > .15 ? .38 : .04));
-        } else v = .48 + .18 * Math.sin(((t - .15) / .71) * Math.PI);
-        values.push(Math.max(.12, Math.min(.98, v)));
-      }
-      bars.replaceChildren();
-      values.forEach((v, i) => {
-        const bar = document.createElement("span");
-        const level = v < .4 ? "easy" : v < .62 ? "moderate" : v < .82 ? "hard" : "peak";
-        bar.className = "workout-bar " + level;
-        bar.style.height = Math.round(18 + v * 112) + "px";
-        bar.title = Math.round((duration / count) * (i + 1)) + " min · " + ({easy:"Leve",moderate:"Moderado",hard:"Forte",peak:"Máximo"}[level]);
-        bars.appendChild(bar);
-      });
-      $("#workoutChartDuration").textContent = "Fim · " + duration + " min";
-      card.hidden = false;
+    function extractWorkoutStages(markdown) {
+      const stages=[];
+      String(markdown||"").split(/\r?\n/).forEach(line=>{
+        if(!/^\s*[-*•]\s+/.test(line))return;
+        const clean=line.replace(/^\s*[-*•]\s+/,"").replace(/\*\*/g,"");
+        const dm=clean.match(/(?:—|–|-|:)?\s*(\d+(?:[.,]\d+)?)\s*(min|minutos|h|hora|horas)\b/i);
+        const duration=dm?Number(dm[1].replace(",","."))*(/^(h|hora)/i.test(dm[2])?60:1):0;
+        const pm=clean.match(/(\d{2,3})\s*(?:-|–|a)\s*(\d{2,3})\s*%\s*(?:do\s*)?FTP|(\d{2,3})\s*%\s*FTP/i);
+        const wm=clean.match(/(\d{2,4})\s*(?:-|–|a)\s*(\d{2,4})\s*W\b/i);
+        const ws=clean.match(/(\d{2,4})\s*W\b/i);
+        if(duration>0)stages.push({label:clean.slice(0,100),duration:duration,pctLow:pm?Number(pm[1]||pm[3]):null,pctHigh:pm?Number(pm[2]||pm[3]):null,wLow:wm?Number(wm[1]):ws?Number(ws[1]):null,wHigh:wm?Number(wm[2]):ws?Number(ws[1]):null});
+      });return stages;
     }
+    function renderWorkoutBars(markdown) {
+      const bars=$("#workoutBars"),card=$("#workoutChartCard");if(!bars||!card)return;
+      const stages=extractWorkoutStages(markdown),ftp=Number($("#workoutPower").value)||0;bars.replaceChildren();
+      let detail=$("#workoutBarDetail");if(!detail){detail=document.createElement("div");detail.id="workoutBarDetail";detail.className="workout-bar-detail";bars.after(detail);}
+      detail.textContent="Toque ou passe o cursor em um bloco para consultar intensidade, %FTP e watts estimados.";
+      if(stages.length){stages.forEach((stage,i)=>{
+        const pct=stage.pctLow==null?null:(stage.pctLow+stage.pctHigh)/2;
+        const low=stage.wLow!=null?stage.wLow:(stage.pctLow!=null&&ftp?Math.round(ftp*stage.pctLow/100):null);
+        const high=stage.wHigh!=null?stage.wHigh:(stage.pctHigh!=null&&ftp?Math.round(ftp*stage.pctHigh/100):null);
+        const level=pct==null?(i===0||i===stages.length-1?"easy":"moderate"):pct<60?"easy":pct<88?"moderate":pct<106?"hard":"peak";
+        const b=document.createElement("button");b.type="button";b.className="workout-bar "+level;b.style.height=(24+Math.min(110,pct==null?45:pct))+"px";
+        const info="Bloco "+(i+1)+" · "+stage.label+" · "+(stage.pctLow==null?"%FTP não informado":stage.pctLow+"–"+stage.pctHigh+"% FTP")+" · "+(low==null?"Watts indisponíveis":low+"–"+high+" W");
+        b.title=info;b.setAttribute("aria-label",info);["focus","mouseenter","click"].forEach(ev=>b.addEventListener(ev,()=>detail.textContent=info));bars.append(b);
+      });}else{for(let i=0;i<24;i++){const b=document.createElement("span");b.className="workout-bar moderate";b.style.height=(50+Math.sin(i/23*Math.PI)*55)+"px";b.title="Intensidade ilustrativa: detalhes não identificados no texto.";bars.append(b);}}
+      $("#workoutChartDuration").textContent=stages.length?"Etapas identificadas · "+stages.length:"Intensidade ilustrativa";card.hidden=false;
+    }
+    function downloadWorkoutFile(extension) {
+      const ftp=Number($("#workoutPower").value)||0;
+      if($("#workoutMetric").value!=="power"||!ftp){setMessage($("#workoutMessage"),"Para exportar .ZWO ou .ERG com potência correta, selecione treino por potência e informe seu FTP.","warning");return;}
+      const stages=extractWorkoutStages(state.lastWorkoutText);
+      if(!stages.length){setMessage($("#workoutMessage"),"Não identifiquei etapas com duração no treino. Gere novamente com a duração explícita em cada etapa.","warning");return;}
+      const blocks=stages.map(v=>{const lo=v.pctLow!=null?v.pctLow/100:(v.wLow!=null?v.wLow/ftp:.6),hi=v.pctHigh!=null?v.pctHigh/100:(v.wHigh!=null?v.wHigh/ftp:lo);return {seconds:Math.round(v.duration*60),power:Math.max(.3,Math.min(2,(lo+hi)/2))};});
+      let content,mime,name;
+      if(extension==="zwo"){
+        const nodes=blocks.map(b=>"<SteadyState Duration=\""+b.seconds+"\" Power=\""+b.power.toFixed(3)+"\" />").join("\n    ");
+        content="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<workout_file><author>Treino Lab</author><name>Treino personalizado</name><description>Treino gerado pelo Treino Lab · FTP "+ftp+" W</description><sportType>bike</sportType><workout>\n    "+nodes+"\n</workout></workout_file>";mime="application/xml";name="treino-lab.zwo";
+      }else{
+        const rows=["[COURSE HEADER]","VERSION = 2","UNITS = METRIC","DESCRIPTION = Treino Lab","FILE NAME = treino-lab.erg","MINUTES PAST THE HOUR = 0","[END COURSE HEADER]","[COURSE DATA]"];let t=0;
+        blocks.forEach(b=>{const watts=Math.round(b.power*ftp);rows.push(t+"\t"+watts);t+=b.seconds/60;rows.push(t+"\t"+watts);});rows.push("[END COURSE DATA]");content=rows.join("\n");mime="text/plain";name="treino-lab.erg";
+      }
+      const url=URL.createObjectURL(new Blob([content],{type:mime})),a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);setMessage($("#workoutMessage"),"Arquivo ."+extension.toUpperCase()+" gerado. Confira o treino no aplicativo de destino.","success");
+    }
+    $("#exportZwoButton").addEventListener("click",()=>downloadWorkoutFile("zwo"));
+    $("#exportErgButton").addEventListener("click",()=>downloadWorkoutFile("erg"));
 
     function workoutToText(data) {
       if (typeof data === "string") {
