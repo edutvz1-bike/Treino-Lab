@@ -9,9 +9,9 @@
   "theme_color": "#101b35",
   "icons": [
     {
-      "src": "/novo-icone-treino-lab.jpg?v=2",
+      "src": "/bike-icon.svg?v=3",
       "sizes": "any",
-      "type": "image/jpeg",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]
