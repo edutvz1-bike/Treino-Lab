@@ -1,0 +1,49 @@
+name: Testar Intervals.icu
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testar-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar atividades do Intervals.icu
+        env:
+          INTERVALS_API_KEY: ${{ secrets.INTERVALS_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$INTERVALS_API_KEY" ]; then
+            echo "::error::Falta o segredo INTERVALS_API_KEY."
+            exit 1
+          fi
+
+          FIM=$(date -u +%F)
+          INICIO=$(date -u -d '14 days ago' +%F)
+
+          curl --fail-with-body --silent --show-error \
+            --user "API_KEY:${INTERVALS_API_KEY}" \
+            --user-agent "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" \
+            "https://intervals.icu/api/v1/athlete/0/activities?oldest=${INICIO}&newest=${FIM}" \
+            --output /tmp/atividades.json
+
+          python - <<'PY'
+          import json
+
+          with open("/tmp/atividades.json", encoding="utf-8") as f:
+              atividades = json.load(f)
+
+          if not isinstance(atividades, list):
+              raise SystemExit("A API não devolveu a lista esperada.")
+
+          print(f"CONEXÃO OK: {len(atividades)} atividades recebidas.")
+
+          for atividade in atividades[:3]:
+              data = atividade.get("start_date_local", "?")
+              nome = atividade.get("name") or atividade.get("type", "Atividade")
+              tss = atividade.get("icu_training_load", "não informado")
+              print(f"- {data} | {nome} | TSS: {tss}")
+          PY

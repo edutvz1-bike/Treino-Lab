@@ -1,0 +1,2473 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101b35">
+  <link rel="icon" type="image/jpeg" href="/novo_icone_pedal_coach.jpeg">
+  <link rel="apple-touch-icon" href="/novo_icone_pedal_coach.jpeg">
+  <link rel="manifest" href="/manifest.webmanifest">
+
+  <title>Pedal Coach | Seu treino inteligente</title>
+  <meta
+    name="description"
+    content="Pedal Coach: acompanhamento, relatórios e treinos de ciclismo personalizados."
+  >
+
+  <style>
+    :root {
+      color-scheme: light;
+
+      --navy: #101b35;
+      --navy-light: #1b2b4d;
+      --blue: #087fc1;
+      --cyan: #18b8ed;
+      --pink: #e83e91;
+
+      --bg: #eef5fb;
+      --card: #ffffff;
+      --ink: #17243b;
+      --muted: #64748b;
+      --line: #d8e5f0;
+
+      --soft-blue: #e8f5fc;
+      --soft-pink: #fff0f7;
+      --soft-cyan: #e7faff;
+
+      --success: #16845b;
+      --danger: #c5374d;
+      --warning: #986315;
+
+      --radius: 18px;
+      --radius-sm: 12px;
+      --shadow: 0 12px 35px rgba(16, 27, 53, 0.07);
+      --max-width: 1180px;
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --navy: #dce8f8;
+      --navy-light: #b8cce6;
+      --blue: #55b8f0;
+      --cyan: #39c9f2;
+      --pink: #f08abd;
+      --bg: #0b1220;
+      --card: #151f30;
+      --ink: #e6edf7;
+      --muted: #a4b2c5;
+      --line: #2b3a50;
+      --soft-blue: #1b3045;
+      --soft-pink: #382238;
+      --soft-cyan: #173443;
+      --success: #63d6a4;
+      --danger: #ff8998;
+      --warning: #f0c36d;
+      --shadow: 0 12px 35px rgba(0, 0, 0, 0.22);
+    }
+
+    :root[data-theme="dark"] body,
+    :root[data-theme="dark"] .card,
+    :root[data-theme="dark"] .report-item,
+    :root[data-theme="dark"] .field input,
+    :root[data-theme="dark"] .field select,
+    :root[data-theme="dark"] .field textarea {
+      background-color: var(--card);
+      color: var(--ink);
+    }
+
+    :root[data-theme="dark"] .card-heading h2,
+    :root[data-theme="dark"] .field label,
+    :root[data-theme="dark"] .weekly-stat strong,
+    :root[data-theme="dark"] .report-item strong,
+    :root[data-theme="dark"] .report-content h1,
+    :root[data-theme="dark"] .report-content h2,
+    :root[data-theme="dark"] .report-content h3,
+    :root[data-theme="dark"] .report-content h4,
+    :root[data-theme="dark"] #workoutResult strong,
+    :root[data-theme="dark"] .footer strong {
+      color: var(--ink);
+    }
+
+    :root[data-theme="dark"] .field input,
+    :root[data-theme="dark"] .field select,
+    :root[data-theme="dark"] .field textarea,
+    :root[data-theme="dark"] .report-item,
+    :root[data-theme="dark"] .empty-state,
+    :root[data-theme="dark"] .week-column,
+    :root[data-theme="dark"] .report-content pre {
+      border-color: var(--line);
+      background: #101a2a;
+      color: var(--ink);
+    }
+
+    :root[data-theme="dark"] .notice.info { background: #172f43; color: #b9e4fb; border-color: #28506a; }
+    :root[data-theme="dark"] .notice.success { background: #17352d; color: #9be6c3; border-color: #285b49; }
+    :root[data-theme="dark"] .notice.error { background: #3a202a; color: #ffb4bf; border-color: #693542; }
+    :root[data-theme="dark"] .notice.warning { background: #3b3020; color: #f4d89d; border-color: #67512c; }
+    :root[data-theme="dark"] .profile-summary,
+    :root[data-theme="dark"] .weekly-stat,
+    :root[data-theme="dark"] .report-content blockquote,
+    :root[data-theme="dark"] #workoutResult code { background: var(--soft-blue); color: var(--ink); }
+    :root[data-theme="dark"] .btn-outline { background: #172337; color: var(--ink); border-color: var(--line); }
+    :root[data-theme="dark"] .recommendation { background: var(--soft-pink); border-color: #68405a; }
+    :root[data-theme="dark"] .recommendation h3 { color: #ffacd2; }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.55;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    a {
+      color: var(--blue);
+    }
+
+    .app-header {
+      width: min(var(--max-width), calc(100% - 36px));
+      margin: 22px auto 0;
+      color: white;
+    }
+
+    .header-inner {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      min-height: 142px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 30px;
+      border: 1px solid rgba(75, 177, 235, .42);
+      border-radius: 24px;
+      background: linear-gradient(112deg, #071b43 0%, #102c59 58%, #0b234c 100%);
+      box-shadow: 0 14px 32px rgba(7, 27, 67, .18);
+    }
+
+    .header-inner::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      right: 190px;
+      bottom: -72px;
+      width: 390px;
+      height: 210px;
+      opacity: .22;
+      background: repeating-linear-gradient(135deg, transparent 0 17px, rgba(24,184,237,.28) 18px 20px, transparent 21px 36px);
+      transform: skewX(-22deg);
+      pointer-events: none;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: block;
+      width: 112px;
+      height: 112px;
+      flex: 0 0 112px;
+    }
+
+    .brand-copy {
+      min-width: 0;
+      padding-left: 22px;
+      border-left: 2px solid rgba(190, 220, 245, .58);
+    }
+
+    .brand-name {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(25px, 3vw, 36px);
+      font-weight: 850;
+      letter-spacing: -1px;
+      line-height: 1.15;
+    }
+
+    .brand-subtitle {
+      margin: 6px 0 0;
+      color: #d1e4f8;
+      font-size: 15px;
+    }
+
+    .header-tools {
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+    }
+
+    .theme-toggle {
+      min-height: 44px;
+      padding: 10px 17px;
+      color: #eaf7ff;
+      background: rgba(5, 23, 56, .42);
+      border: 1px solid rgba(52, 190, 244, .85);
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(24, 184, 237, .16);
+    }
+
+    :root[data-theme="dark"] .app-header .header-inner {
+      background: linear-gradient(112deg, #050d20 0%, #0b1a36 58%, #07152e 100%);
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+    }
+
+    .page {
+      width: min(var(--max-width), calc(100% - 36px));
+      margin: 30px auto 60px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 30px;
+      margin-bottom: 24px;
+      border-radius: 24px;
+      color: white;
+      background:
+        radial-gradient(circle at 90% 15%, rgba(24, 184, 237, 0.24), transparent 32%),
+        linear-gradient(125deg, var(--navy), #1c3865);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      right: -70px;
+      bottom: -105px;
+      border: 25px solid rgba(232, 62, 145, 0.45);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.12;
+      letter-spacing: -1.5px;
+    }
+
+    .hero p:not(.eyebrow) {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 14px 0 0;
+      color: #d5e6f7;
+      font-size: 15px;
+    }
+
+    .hero-accent {
+      color: var(--cyan);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.72fr);
+      align-items: start;
+      gap: 22px;
+    }
+
+    .main-column,
+    .side-column {
+      display: grid;
+      gap: 22px;
+      min-width: 0;
+    }
+
+    .card {
+      min-width: 0;
+      padding: 24px;
+      background: var(--card);
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .card-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .card-heading h2 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 19px;
+      line-height: 1.3;
+      letter-spacing: -0.35px;
+    }
+
+    .card-heading p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .section-number {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      border-radius: 12px;
+      background: var(--soft-blue);
+      color: var(--blue);
+      font-size: 16px;
+      font-weight: 850;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      color: var(--navy);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .field small,
+    .help-text {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      min-height: 46px;
+      padding: 11px 13px;
+      color: var(--ink);
+      background: #fbfdff;
+      border: 1px solid #cad9e7;
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .field input[type="date"] {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      min-height: 46px;
+      padding-inline: 10px;
+      font-size: 16px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(8, 127, 193, 0.12);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 11px 17px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      color: white;
+      background: var(--blue);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #066ca6;
+    }
+
+    .btn-dark {
+      color: white;
+      background: var(--navy);
+    }
+
+    .btn-outline {
+      color: var(--navy);
+      background: white;
+      border-color: var(--line);
+    }
+
+    .btn-pink {
+      color: white;
+      background: var(--pink);
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .notice {
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 13px;
+    }
+
+    .notice.info {
+      color: #155b82;
+      background: var(--soft-blue);
+      border-color: #c6e7f7;
+    }
+
+    .notice.success {
+      color: var(--success);
+      background: #eaf8f0;
+      border-color: #c5ead6;
+    }
+
+    .notice.error {
+      color: var(--danger);
+      background: #fff0f2;
+      border-color: #f4ccd2;
+    }
+
+    .notice.warning {
+      color: var(--warning);
+      background: #fff8e9;
+      border-color: #f0dfb4;
+    }
+
+    .notice:empty {
+      display: none;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
+    .divider {
+      height: 1px;
+      margin: 20px 0;
+      background: var(--line);
+    }
+
+    .profile-summary {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 15px;
+      margin-bottom: 18px;
+      border-radius: 14px;
+      background: var(--soft-blue);
+    }
+
+    .profile-avatar {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: white;
+      font-size: 20px;
+      font-weight: 850;
+    }
+
+    .weekly-stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .weekly-stat { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft-blue); }
+    .weekly-stat span { display: block; color: var(--muted); font-size: 12px; }
+    .weekly-stat strong { display: block; margin-top: 4px; color: var(--navy); font-size: 22px; line-height: 1.25; }
+
+    .four-week-legend { display:flex; flex-wrap:wrap; gap:16px; margin:14px 0 8px; color:var(--muted); font-size:12px; }
+    .four-week-legend span { display:flex; align-items:center; gap:6px; }
+    .bar-key { width:10px; height:10px; border-radius:2px; display:inline-block; }
+    .bar-key.tss { background:#2478c8; } .bar-key.hours { background:#16a085; } .bar-key.distance { background:#ef9b32; }
+    .four-week-chart { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(8px,2vw,22px); min-height:260px; padding:18px 8px 4px; perspective:900px; }
+    .week-column { min-width:0; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; }
+    .week-bars { width:100%; height:205px; display:flex; align-items:flex-end; justify-content:center; gap:clamp(5px,1.5vw,14px); padding:0 4px 0 0; border-bottom:1px solid var(--line); transform:rotateX(3deg); transform-style:preserve-3d; }
+    .week-bar-wrap { flex:1; min-width:0; max-width:48px; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; position:relative; }
+    .week-bar-value { font-size:10px; color:var(--ink); margin-bottom:5px; white-space:nowrap; font-weight:700; }
+    .week-bar { width:72%; min-height:3px; border-radius:4px 4px 0 0; position:relative; box-shadow:5px 0 0 rgba(0,0,0,.13); transform:skewY(-2deg); }
+    .week-bar::after { content:""; position:absolute; right:-5px; top:2px; width:5px; height:100%; filter:brightness(.78); transform:skewY(42deg); transform-origin:left top; border-radius:0 2px 2px 0; background:inherit; }
+    .week-bar.tss { background:#2478c8; } .week-bar.hours { background:#16a085; } .week-bar.distance { background:#ef9b32; }
+    .week-label { margin-top:12px; font-size:11px; text-align:center; color:var(--muted); }
+    @media(max-width:560px) {
+      .four-week-chart { grid-template-columns:1fr; gap:14px; padding:12px 0 4px; min-height:0; }
+      .week-column { align-items:stretch; padding:12px; border:1px solid var(--line); border-radius:12px; background:#fbfdff; }
+      .week-bars { height:auto; display:grid; grid-template-columns:1fr; gap:9px; padding:0; border:0; transform:none; }
+      .week-bar-wrap { width:100%; max-width:none; height:22px; display:grid; grid-template-columns:74px minmax(0,1fr) 76px; gap:8px; align-items:center; }
+      .week-bar-value { grid-column:3; grid-row:1; margin:0; font-size:11px; text-align:right; white-space:nowrap; }
+      .week-bar { grid-column:2; grid-row:1; width:100%; height:12px !important; min-height:4px; border-radius:4px; transform:none; box-shadow:none; }
+      .week-bar::after { display:none; }
+      .week-bar-wrap::before { grid-column:1; grid-row:1; font-size:11px; color:var(--muted); font-weight:650; }
+      .week-bar-wrap:has(.week-bar.tss)::before { content:"TSS"; }
+      .week-bar-wrap:has(.week-bar.hours)::before { content:"Horas"; }
+      .week-bar-wrap:has(.week-bar.distance)::before { content:"Distância"; }
+      .week-label { margin-top:10px; font-size:12px; text-align:left; font-weight:750; color:var(--ink); }
+    }
+
+    .report-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .report-item {
+      width: 100%;
+      padding: 14px;
+      text-align: left;
+      color: var(--ink);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .report-item:hover {
+      background: var(--soft-blue);
+      border-color: #9bcfe9;
+    }
+
+    .report-item strong {
+      display: block;
+      color: var(--navy);
+      font-size: 13px;
+    }
+
+    .report-item span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .empty-state {
+      padding: 20px;
+      color: var(--muted);
+      background: #f8fbfe;
+      border: 1px dashed #cbd9e6;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .report-content {
+      overflow-wrap: anywhere;
+    }
+
+    #workoutResult { max-width: 820px; }
+    #workoutChartCard { margin: 18px 0 22px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--card, #fff); }
+    #workoutChartCard h3 { margin: 0 0 5px; }
+    #workoutChartCard .chart-subtitle { margin: 0 0 18px; color: var(--muted, #64748b); font-size: .9rem; }
+    #workoutBars { display: flex; align-items: end; gap: 4px; height: 148px; padding: 12px 0 0; border-bottom: 1px solid var(--line, #e2e8f0); }
+    .workout-bar { flex: 1 1 0; min-width: 3px; border-radius: 4px 4px 1px 1px; transition: height .2s ease; }
+    .workout-bar.easy { background: #38bdf8; }
+    .workout-bar.moderate { background: #22c55e; }
+    .workout-bar.hard { background: #f59e0b; }
+    .workout-bar.peak { background: #ef4444; }
+    #workoutChartLegend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; color: var(--muted, #64748b); font-size: .8rem; }
+    .workout-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .workout-legend-swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; }
+    #workoutChartAxis { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; color: var(--muted, #64748b); font-size: .78rem; }
+
+    #workoutResult h2 { margin-top: 24px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+    #workoutResult h3, #workoutResult h4 { margin-top: 18px; }
+    #workoutResult p { margin: 8px 0; }
+    #workoutResult li { margin: 4px 0; }
+    #workoutResult strong { color: var(--navy); }
+    #workoutResult code { padding: 2px 5px; border-radius: 5px; background: var(--soft-blue); }
+
+    .report-content h1,
+    .report-content h2,
+    .report-content h3,
+    .report-content h4 {
+      margin: 22px 0 9px;
+      color: var(--navy);
+      line-height: 1.3;
+    }
+
+    .report-content h1 {
+      font-size: 25px;
+    }
+
+    .report-content h2 {
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--soft-blue);
+      font-size: 20px;
+    }
+
+    .report-content h3 {
+      font-size: 16px;
+    }
+
+    .report-content p {
+      margin: 10px 0;
+    }
+
+    .report-content ul,
+    .report-content ol {
+      padding-left: 23px;
+    }
+
+    .report-content li {
+      margin: 6px 0;
+    }
+
+    .report-content blockquote {
+      padding: 10px 15px;
+      margin: 14px 0;
+      color: var(--navy);
+      background: var(--soft-blue);
+      border-left: 4px solid var(--cyan);
+      border-radius: 0 10px 10px 0;
+    }
+
+    .report-content pre {
+      overflow-x: auto;
+      padding: 14px;
+      background: #f2f6fa;
+      border-radius: 10px;
+    }
+
+    .report-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 13px;
+    }
+
+    .report-content th,
+    .report-content td {
+      padding: 9px;
+      border: 1px solid var(--line);
+      text-align: left;
+    }
+
+    .report-content th {
+      background: var(--soft-blue);
+    }
+
+    .recommendation {
+      padding: 16px;
+      margin-top: 18px;
+      background: var(--soft-pink);
+      border: 1px solid #f7cce2;
+      border-radius: 14px;
+    }
+
+    .recommendation h3 {
+      margin: 0 0 8px;
+      color: #a51d61;
+      font-size: 16px;
+    }
+
+    .recommendation p {
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .footer {
+      padding: 25px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .footer strong {
+      color: var(--navy);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 850px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .side-column {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page {
+        width: min(100% - 24px, var(--max-width));
+      }
+
+      /* O cabeçalho ocupa toda a largura do contêiner, alinhado à página. */
+      .header-inner {
+        width: 100%;
+      }
+
+      .app-header {
+        width: min(100% - 24px, var(--max-width));
+        margin-top: 12px;
+      }
+
+      .header-inner {
+        min-height: 104px;
+        gap: 10px;
+        padding: 16px 13px;
+        border-radius: 18px;
+      }
+
+      .brand {
+        gap: 10px;
+      }
+
+      .brand-mark {
+        width: 66px;
+        height: 66px;
+        flex-basis: 66px;
+      }
+
+      .brand-copy {
+        padding-left: 11px;
+      }
+
+      .brand-name {
+        font-size: 20px;
+        letter-spacing: -.5px;
+      }
+
+      .brand-subtitle {
+        margin-top: 3px;
+        font-size: 10px;
+        line-height: 1.3;
+      }
+
+      .header-tools {
+        flex: 0 0 auto;
+      }
+
+      .theme-toggle {
+        min-height: 36px;
+        padding: 7px 9px;
+        font-size: 10px;
+      }
+
+      .page {
+        margin-top: 18px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .side-column {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field.full {
+        grid-column: auto;
+      }
+
+      .field,
+      .field input,
+      .field input[type="date"],
+      .field select {
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .actions .btn {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+<!-- deploy-refresh: 2026-10-22 -->
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img class="brand-mark" src="/novo_icone_pedal_coach.jpeg" alt="Ícone Pedal Coach" />
+        <div class="brand-copy">
+          <p class="brand-name">Pedal Coach</p>
+          <p class="brand-subtitle">Inteligência para sua evolução</p>
+        </div>
+      </div>
+
+      <div class="header-tools">
+        <button id="themeToggle" class="btn theme-toggle" type="button" aria-pressed="true" aria-label="Desativar modo noturno">☀️ Ativar modo claro</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div id="globalMessage" class="notice" role="status" aria-live="polite"></div>
+
+    <!-- ACESSO -->
+    <section id="loginSection" class="card">
+      <div class="card-heading">
+        <div>
+          <h2>Acesse sua conta</h2>
+          <p>Entre para consultar seus dados e seus treinos.</p>
+        </div>
+        <div class="section-number" aria-hidden="true">01</div>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-grid">
+          <div class="field full">
+            <label for="loginEmail">E-mail</label>
+            <input
+              id="loginEmail"
+              name="email"
+              type="email"
+              autocomplete="username"
+              placeholder="voce@exemplo.com"
+              required
+            >
+          </div>
+
+          <div class="field full">
+            <label for="loginPassword">Senha</label>
+            <input
+              id="loginPassword"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Digite sua senha"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="loginButton" class="btn btn-primary" type="submit">
+            Entrar na plataforma
+          </button>
+
+          <button id="showRecoveryButton" class="btn btn-outline" type="button">
+            Recuperação / check-in
+          </button>
+        </div>
+      </form>
+
+      <div id="recoverySection" hidden>
+        <div class="divider"></div>
+
+        <div class="card-heading">
+          <div>
+            <h2>Recuperação e check-in</h2>
+            <p>Informe como você está se sentindo antes de treinar.</p>
+          </div>
+        </div>
+
+        <div class="notice info">
+          Este formulário registra as informações de check-in na plataforma
+          quando o serviço correspondente estiver configurado no backend.
+        </div>
+
+        <form id="recoveryForm">
+          <div class="form-grid">
+            <div class="field full">
+              <label for="recoveryEmail">E-mail da conta</label>
+              <input
+                id="recoveryEmail"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="voce@exemplo.com"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label for="recoverySleep">Qualidade do sono</label>
+              <select id="recoverySleep" name="sleep" required>
+                <option value="">Selecione</option>
+                <option value="1">1 — Muito ruim</option>
+                <option value="2">2 — Ruim</option>
+                <option value="3">3 — Regular</option>
+                <option value="4">4 — Boa</option>
+                <option value="5">5 — Excelente</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="recoveryFatigue">Fadiga atual</label>
+              <select id="recoveryFatigue" name="fatigue" required>
+                <option value="">Selecione</option>
+                <option value="1">1 — Muito baixa</option>
+                <option value="2">2 — Baixa</option>
+                <option value="3">3 — Moderada</option>
+                <option value="4">4 — Alta</option>
+                <option value="5">5 — Muito alta</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="recoverySoreness">Dor muscular</label>
+              <select id="recoverySoreness" name="soreness" required>
+                <option value="">Selecione</option>
+                <option value="1">1 — Nenhuma</option>
+                <option value="2">2 — Leve</option>
+                <option value="3">3 — Moderada</option>
+                <option value="4">4 — Forte</option>
+                <option value="5">5 — Muito forte</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="recoveryStress">Estresse</label>
+              <select id="recoveryStress" name="stress" required>
+                <option value="">Selecione</option>
+                <option value="1">1 — Muito baixo</option>
+                <option value="2">2 — Baixo</option>
+                <option value="3">3 — Moderado</option>
+                <option value="4">4 — Alto</option>
+                <option value="5">5 — Muito alto</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label for="recoveryNotes">Observações</label>
+              <textarea
+                id="recoveryNotes"
+                name="notes"
+                maxlength="1500"
+                placeholder="Conte como está se sentindo hoje..."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="recoveryButton" class="btn btn-pink" type="submit">
+              Enviar check-in
+            </button>
+            <button id="hideRecoveryButton" class="btn btn-outline" type="button">
+              Fechar
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ÁREA AUTENTICADA -->
+    <section id="dashboardSection" hidden>
+      <div class="profile-summary">
+        
+        <div>
+          <span id="profileEmail"></span>
+        </div>
+        <div style="margin-left:auto">
+          <button id="logoutButton" class="btn btn-outline" type="button">
+            Sair
+          </button>
+        </div>
+      </div>
+
+      <div class="layout">
+        <div class="main-column">
+          <!-- ANÁLISE DO ÚLTIMO TREINO -->
+          <section class="card" id="lastRideAnalysisCard">
+            <div class="card-heading">
+              <div>
+                <h2>Analisar meu último pedal</h2>
+                <p>Busque seu treino mais recente no Intervals.icu e receba uma avaliação da IA.</p>
+              </div></div>
+            <div class="notice info">
+              A análise usa os dados registrados no Intervals.icu. Métricas que não estiverem disponíveis não serão presumidas.
+            </div>
+            <div id="lastRideMessage" class="notice" role="status" aria-live="polite"></div>
+            <button id="analyzeLastRideButton" class="btn btn-primary" type="button">
+              Analisar último treino
+            </button>
+            <div id="lastRideMeta" class="small muted" style="margin-top:12px"></div>
+            <div id="lastRideResult" class="report-content" hidden></div>
+          </section>
+
+          <!-- GERAÇÃO DE TREINO -->
+          <section class="card">
+            <div class="card-heading">
+              <div>
+                <h2>Gerar meu treino</h2>
+                <p>Personalize a sessão de acordo com seu momento.</p>
+              </div>
+            </div>
+
+            <div id="workoutMessage" class="notice" role="status" aria-live="polite"></div>
+
+            <form id="workoutForm">
+              <div class="form-grid">
+                <div class="field">
+                  <label for="workoutGoal">Objetivo principal</label>
+                  <select id="workoutGoal" name="goal" required>
+                    <option value="endurance">Resistência</option>
+                    <option value="strength">Força</option>
+                    <option value="threshold">Limiar</option>
+                    <option value="vo2max">VO₂ máximo</option>
+                    <option value="recovery">Recuperação</option>
+                    <option value="race">Preparação para prova</option>
+                    <option value="general">Condicionamento geral</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="workoutLevel">Nível atual</label>
+                  <select id="workoutLevel" name="level" required>
+                    <option value="beginner">Iniciante</option>
+                    <option value="intermediate" selected>Intermediário</option>
+                    <option value="advanced">Avançado</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="workoutLocation">Tipo de treino</label>
+                  <select id="workoutLocation" name="location" required>
+                    <option value="indoor">Indoor</option>
+                    <option value="road">Road</option>
+                    <option value="mtb">MTB</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="sleepDuration">Tempo dormindo (horas)</label>
+                  <input id="sleepDuration" name="sleepDuration" type="number" min="0.25" max="24" step="0.25" required placeholder="Ex.: 7,5">
+                  <small>Digite o total de horas dormidas. Ex.: 7,5 equivale a 7h30.</small>
+                </div>
+
+                <div class="field">
+                  <label for="restingHR">FC de repouso (bpm)</label>
+                  <input id="restingHR" name="restingHR" type="number" min="25" max="220" required placeholder="Ex.: 52">
+                </div>
+
+                <div class="field">
+                  <label for="hrvMs">HRV (ms)</label>
+                  <input id="hrvMs" name="hrvMs" type="number" min="0" max="300" required placeholder="Ex.: 65">
+                </div>
+
+                <div class="field">
+                  <label for="fatigue">Fadiga percebida (1–10)</label>
+                  <select id="fatigue" name="fatigue" required>
+                    <option value="1">1 — Muito baixa</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10 — Muito alta</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="workoutAvailability">Disponibilidade hoje</label>
+                  <input
+                    id="workoutAvailability"
+                    name="availability"
+                    type="text"
+                    maxlength="100"
+                    placeholder="Ex.: tenho 1h30 disponível, das 18h às 19h30"
+                    autocomplete="off"
+                  >
+                  <small>Informe quanto tempo você tem para treinar. A IA usará isso para ajustar a duração do treino.</small>
+                </div>
+
+                <div class="field">
+                  <label for="plannedWorkoutDate">Data do treino no calendário</label>
+                  <input id="plannedWorkoutDate" name="plannedDate" type="date" required>
+                  <small>O treino será criado nesta data no Intervals.icu.</small>
+                </div>
+
+                <div class="field">
+                  <label for="workoutMetric">Sensor usado para controlar o treino</label>
+                  <select id="workoutMetric" name="trainingMetric" required>
+                    <option value="heart_rate" selected>Frequência cardíaca (sem medidor de potência)</option>
+                    <option value="power">Potência (medidor de potência)</option>
+                  </select>
+                  <small>O treino será prescrito conforme o sensor selecionado.</small>
+                </div>
+
+                <div class="field" id="workoutFthrField">
+                  <label for="workoutFthr">FTHR — limiar de frequência cardíaca (bpm)</label>
+                  <input id="workoutFthr" name="fthr" type="number" min="80" max="220" step="1" required placeholder="Ex.: 167">
+                </div>
+
+                <div class="field" id="workoutPowerField" hidden>
+                  <label for="workoutPower">FTP em watts</label>
+                  <input id="workoutPower" name="ftp" type="number" min="1" max="1000" step="1" placeholder="Ex.: 220">
+                </div>
+                <div class="field full">
+                  <label for="workoutNotes">Informações adicionais</label>
+                  <textarea
+                    id="workoutNotes"
+                    name="notes"
+                    maxlength="2000"
+                    placeholder="Ex.: prova no domingo, pouco tempo, subida longa..."
+                  ></textarea>
+                  <small>
+                    Não informe senhas, tokens ou outras credenciais neste campo.
+                  </small>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button id="generateButton" class="btn btn-primary" type="submit">
+                  Gerar treino personalizado
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- RESULTADO -->
+          <section id="workoutResultSection" class="card" hidden>
+            <div class="card-heading">
+              <div>
+                <h2>Seu treino</h2>
+                <p>Resultado da última solicitação.</p>
+              </div>
+              <div class="section-number" aria-hidden="true">03</div>
+            </div>
+
+            <div id="workoutChartCard" hidden>
+              <h3>Estrutura do treino</h3>
+              <p class="chart-subtitle">Perfil estimado de intensidade · cada barra representa um trecho da sessão</p>
+              <div id="workoutBars" role="img" aria-label="Gráfico de barras da intensidade estimada do treino"></div>
+              <div id="workoutChartAxis"><span>Início</span><span id="workoutChartDuration">Fim</span></div>
+              <div id="workoutChartLegend">
+                <span class="workout-legend-item"><i class="workout-legend-swatch" style="background:#38bdf8"></i>Leve</span>
+                <span class="workout-legend-item"><i class="workout-legend-swatch" style="background:#22c55e"></i>Moderado</span>
+                <span class="workout-legend-item"><i class="workout-legend-swatch" style="background:#f59e0b"></i>Forte</span>
+                <span class="workout-legend-item"><i class="workout-legend-swatch" style="background:#ef4444"></i>Máximo</span>
+              </div>
+            </div>
+            <div id="workoutResult" class="report-content"></div>
+
+            <div class="actions">
+              <button id="copyWorkoutButton" class="btn btn-outline" type="button">
+                Copiar treino
+              </button>
+              <button id="newWorkoutButton" class="btn btn-primary" type="button">
+                Criar outro treino
+              </button>
+            </div>
+          </section>
+
+          <!-- RELATÓRIO SELECIONADO -->
+          <section id="reportSection" class="card" hidden>
+            <div class="card-heading">
+              <div>
+                <h2>Relatório selecionado</h2>
+                <p id="reportSubtitle">Detalhes do seu relatório.</p>
+              </div>
+              <div class="section-number" aria-hidden="true">04</div>
+            </div>
+
+            <div id="reportMessage" class="notice" role="status" aria-live="polite"></div>
+
+            <div id="reportTop" class="report-content"></div>
+            <div id="reportBottom" class="report-content"></div>
+
+            <div id="recommendation" class="recommendation" hidden>
+              <h3>Recomendação</h3>
+              <div id="recommendationContent"></div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="side-column">
+          <!-- RESUMO SEMANAL DE TREINO -->
+          <section class="card" aria-labelledby="weeklyStatsTitle">
+            <div class="card-heading"><div><h2 id="weeklyStatsTitle">Resumo semanal</h2><p id="weeklyStatsPeriod">Carga acumulada desde segunda-feira</p></div></div>
+            <div id="weeklyStatsMessage" class="notice" role="status" aria-live="polite"></div>
+            <div class="weekly-stats-grid">
+              <div class="weekly-stat"><span>TSS semanal</span><strong id="weeklyTss">—</strong></div>
+              <div class="weekly-stat"><span>Distância</span><strong id="weeklyDistance">—</strong></div>
+              <div class="weekly-stat"><span>Horas de treino</span><strong id="weeklyHours">—</strong></div>
+              <div class="weekly-stat"><span>Sessões</span><strong id="weeklySessions">—</strong></div>
+            </div>
+          </section>
+
+
+
+        </aside>
+      </div>
+
+      <section class="card" id="fourWeekSummaryCard" style="margin-top:22px; margin-bottom:22px">
+        <div class="card-heading">
+          <div>
+            <h2>Resumo das últimas 4 semanas</h2>
+            <p>Comparativo semanal de carga, tempo e distância.</p>
+          </div>
+          <button id="refreshFourWeekSummaryButton" class="btn btn-outline" type="button">Atualizar</button>
+        </div>
+        <div id="fourWeekSummaryMessage" class="notice" role="status" aria-live="polite">Carregando resumo...</div>
+        <div class="four-week-legend">
+          <span><i class="bar-key tss"></i>TSS</span>
+          <span><i class="bar-key hours"></i>Horas</span>
+          <span><i class="bar-key distance"></i>Distância</span>
+        </div>
+        <div id="fourWeekSummaryChart" class="four-week-chart" aria-label="Gráfico de barras 3D com TSS, horas de treino e distância por semana"></div>
+        <p class="muted small">A altura das barras é proporcional ao maior valor de cada indicador nas quatro semanas. Os valores exibidos mantêm as unidades reais.</p>
+      </section>
+
+          <!-- RELATÓRIOS -->
+          <section class="card">
+            <div class="card-heading">
+              <div>
+                <h2>Meus relatórios</h2>
+                <p>Consulte as informações disponíveis na sua conta.</p>
+              </div>
+            </div>
+
+            <div id="reportsMessage" class="notice" role="status" aria-live="polite"></div>
+
+            <div id="reportsList" class="report-list">
+              <div class="empty-state">
+                Seus relatórios aparecerão aqui após o carregamento.
+              </div>
+            </div>
+
+            <div class="actions">
+              <button id="refreshReportsButton" class="btn btn-outline btn-block" type="button">
+                Atualizar relatórios
+              </button>
+            </div>
+          </section>
+
+
+    </section>
+
+    <footer class="footer">
+      <strong>Pedal Coach</strong> · Treine com propósito. Evolua com consistência.
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    /*
+     * CONFIGURAÇÃO DA API
+     *
+     * Este arquivo pressupõe que o frontend e as rotas /api estejam
+     * publicados no mesmo domínio.
+     *
+     * Se o backend usar outros caminhos ou formatos de requisição,
+     * ajuste as funções de API abaixo para corresponder ao servidor.
+     */
+
+    const API = Object.freeze({
+      login: "/api/login",
+      reports: "/api/reports",
+      report: "/api/report",
+      generateWorkout: "/api/generate-workout",
+      analyzeLastRide: "/api/analyze-last-ride"
+    });
+
+    const $ = (selector) => document.querySelector(selector);
+
+    const state = {
+      user: null,
+      token: null,
+      reports: [],
+      lastWorkoutText: ""
+    };
+
+    function setMessage(element, message = "", type = "info") {
+      if (!element) return;
+
+      element.textContent = message;
+      element.className = message ? `notice ${type}` : "notice";
+      element.hidden = !message;
+    }
+
+    function setLoading(button, loading, loadingText = "Aguarde...") {
+      if (!button) return;
+
+      if (loading) {
+        if (!button.dataset.originalText) {
+          button.dataset.originalText = button.textContent.trim();
+        }
+
+        button.disabled = true;
+        button.replaceChildren();
+
+        const spinner = document.createElement("span");
+        spinner.className = "spinner";
+        spinner.setAttribute("aria-hidden", "true");
+
+        const text = document.createElement("span");
+        text.textContent = loadingText;
+
+        button.append(spinner, text);
+      } else {
+        button.disabled = false;
+
+        if (button.dataset.originalText) {
+          button.textContent = button.dataset.originalText;
+          delete button.dataset.originalText;
+        }
+      }
+    }
+
+    async function apiRequest(path, options = {}) {
+      const headers = new Headers(options.headers || {});
+
+      if (options.body !== undefined && !headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json");
+      }
+
+      /*
+       * O token é mantido somente em memória nesta versão.
+       * Se seu backend usa cookies de sessão, configure credentials:
+       * "include" e a política CORS correspondente no servidor.
+       */
+      if (state.token) {
+        headers.set("Authorization", `Bearer ${state.token}`);
+      }
+
+      const response = await fetch(path, {
+        ...options,
+        headers,
+        credentials: "same-origin"
+      });
+
+      const contentType = response.headers.get("content-type") || "";
+      let data;
+
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
+
+      if (!response.ok) {
+        const message =
+          data && typeof data === "object"
+            ? data.message || data.detail || data.error
+            : data;
+
+        throw new Error(
+          typeof message === "string" && message.trim()
+            ? message
+            : `A solicitação falhou (HTTP ${response.status}).`
+        );
+      }
+
+      return data;
+    }
+
+    function getMessage(data, fallback = "Operação concluída.") {
+      if (typeof data === "string") return data;
+
+      if (data && typeof data === "object") {
+        return data.message || data.mensagem || fallback;
+      }
+
+      return fallback;
+    }
+
+    function getDisplayName(user, fallback = "Ciclista") {
+      if (!user || typeof user !== "object") return fallback;
+
+      return (
+        user.name ||
+        user.nome ||
+        user.displayName ||
+        user.full_name ||
+        user.email ||
+        fallback
+      );
+    }
+
+    function showDashboard(user) {
+      state.user = user || {};
+      $("#loginSection").hidden = true;
+      $("#dashboardSection").hidden = false;
+
+      const profileName = $("#profileName");
+      if (profileName) profileName.textContent = getDisplayName(state.user);
+      $("#profileEmail").textContent = state.user.email || "";
+
+      setMessage($("#globalMessage"));
+    }
+
+    function showLogin() {
+      state.user = null;
+      state.token = null;
+      state.reports = [];
+
+      $("#loginSection").hidden = false;
+      $("#dashboardSection").hidden = true;
+      $("#workoutResultSection").hidden = true;
+      $("#reportSection").hidden = true;
+
+      $("#loginPassword").value = "";
+      $("#reportsList").replaceChildren();
+      $("#profileName").textContent = "Ciclista";
+      $("#profileEmail").textContent = "";
+
+      setMessage($("#globalMessage"));
+    }
+
+    /*
+     * Login
+     *
+     * Envia { email, password } para /api/login.
+     * Espera uma resposta com o usuário e, opcionalmente, um token.
+     * Ajuste esta função se a resposta do seu backend for diferente.
+     */
+    async function login(email, password) {
+      const data = await apiRequest(API.login, {
+        method: "POST",
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!data || typeof data !== "object") {
+        throw new Error("A resposta do login não está no formato esperado.");
+      }
+
+      if (data.success === false || data.ok === false) {
+        throw new Error(data.message || data.error || "Não foi possível entrar.");
+      }
+
+      const user = data.user || data.usuario || data.profile || {
+        email: email
+      };
+
+      state.token = data.token || data.accessToken || null;
+
+      showDashboard(user);
+      await Promise.all([loadReports(), loadWeeklyStats()]);
+
+      return data;
+    }
+
+    async function loadWeeklyStats() {
+      const message = $("#weeklyStatsMessage");
+      setMessage(message);
+      try {
+        const data = await apiRequest("/api/weekly-stats", { method: "GET" });
+        if (!data || data.error) throw new Error(data?.message || "Não foi possível carregar o resumo semanal.");
+        $("#weeklyTss").textContent = data.tss == null ? "—" : `${Math.round(data.tss)} TSS`;
+        $("#weeklyDistance").textContent = data.distanceKm == null ? "—" : `${data.distanceKm.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
+        $("#weeklyHours").textContent = data.hours == null ? "—" : `${data.hours.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} h`;
+        $("#weeklySessions").textContent = data.sessions ?? "—";
+        $("#weeklyStatsPeriod").textContent = data.periodLabel || "Carga acumulada desde segunda-feira";
+        if (data.message) {
+          setMessage(message, data.message, "warning");
+        } else {
+          setMessage(message);
+        }
+      } catch (error) {
+        setMessage(message, `Resumo semanal indisponível: ${error.message}`, "warning");
+      }
+    }
+
+    /*
+     * Relatórios
+     *
+     * Esta função aceita algumas estruturas comuns de resposta:
+     * { reports: [...] }, { data: [...] } ou diretamente um array.
+     */
+    async function loadReports() {
+      setMessage($("#reportsMessage"));
+
+      try {
+        const data = await apiRequest(API.reports, {
+          method: "GET"
+        });
+
+        let reports;
+
+        if (Array.isArray(data)) {
+          reports = data;
+        } else if (data && typeof data === "object") {
+          reports = data.reports || data.relatorios || data.data || [];
+        } else {
+          reports = [];
+        }
+
+        if (!Array.isArray(reports)) {
+          throw new Error("O servidor retornou uma lista de relatórios inválida.");
+        }
+
+        state.reports = reports;
+        renderReports(reports);
+      } catch (error) {
+        setMessage(
+          $("#reportsMessage"),
+          `Não foi possível carregar os relatórios: ${error.message}`,
+          "error"
+        );
+
+        renderReports([]);
+      }
+    }
+
+    function getReportId(report, index) {
+      if (!report || typeof report !== "object") return String(index);
+
+      // Os relatórios diários são arquivos Markdown; a API espera o nome do arquivo.
+      return String(
+        report.name ??
+        report.nome ??
+        report.filename ??
+        report.fileName ??
+        report.id ??
+        report.reportId ??
+        report.report_id ??
+        report._id ??
+        report.uuid ??
+        index
+      );
+    }
+
+    function getReportTitle(report, index) {
+      if (!report || typeof report !== "object") {
+        return `Relatório ${index + 1}`;
+      }
+
+      return (
+        report.title ||
+        report.titulo ||
+        report.name ||
+        report.nome ||
+        report.type ||
+        report.tipo ||
+        `Relatório ${index + 1}`
+      );
+    }
+
+    function getReportDate(report) {
+      if (!report || typeof report !== "object") return "";
+
+      const value =
+        report.createdAt ||
+        report.created_at ||
+        report.date ||
+        report.data ||
+        report.timestamp;
+
+      if (!value) return "";
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return String(value);
+      }
+
+      return date.toLocaleString("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short"
+      });
+    }
+
+    function renderReports(reports) {
+      const container = $("#reportsList");
+      container.replaceChildren();
+
+      if (!reports.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = "Nenhum relatório disponível no momento.";
+        container.append(empty);
+        return;
+      }
+
+      reports.slice(0, 4).forEach((report, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "report-item";
+
+        const title = document.createElement("strong");
+        title.textContent = getReportTitle(report, index);
+
+        const subtitle = document.createElement("span");
+        subtitle.textContent =
+          getReportDate(report) ||
+          "Clique para consultar os detalhes";
+
+        button.append(title, subtitle);
+
+        button.addEventListener("click", () => {
+          openReport(report, index);
+        });
+
+        container.append(button);
+      });
+    }
+
+    /*
+     * Detalhes de um relatório
+     *
+     * Envia o identificador como parâmetro ?id=...
+     * Se seu backend espera outro parâmetro, ajuste aqui.
+     */
+    async function openReport(report, index) {
+      const id = getReportId(report, index);
+
+      $("#reportSection").hidden = false;
+      $("#reportSubtitle").textContent = getReportTitle(report, index);
+      $("#reportTop").replaceChildren();
+      $("#reportBottom").replaceChildren();
+      $("#recommendation").hidden = true;
+      setMessage($("#reportMessage"));
+
+      $("#reportSection").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+      try {
+        const query = new URLSearchParams({ name: id });
+        const data = await apiRequest(`${API.report}?${query.toString()}`, {
+          method: "GET"
+        });
+
+        const result =
+          data && typeof data === "object"
+            ? data.report || data.relatorios || data.data || data
+            : data;
+
+        const topText =
+          result && typeof result === "object"
+            ? result.top || result.summary || result.resumo || result.content || result.conteudo
+            : result;
+
+        const bottomText =
+          result && typeof result === "object"
+            ? result.bottom || result.details || result.detalhes || ""
+            : "";
+
+        const recommendation =
+          result && typeof result === "object"
+            ? result.recommendation || result.recommendationText ||
+              result.recomendacao || ""
+            : "";
+
+        renderPlainContent($("#reportTop"), topText);
+        renderPlainContent($("#reportBottom"), bottomText);
+
+        if (recommendation) {
+          $("#recommendation").hidden = false;
+          renderPlainContent($("#recommendationContent"), recommendation);
+        }
+      } catch (error) {
+        setMessage(
+          $("#reportMessage"),
+          `Não foi possível abrir o relatório: ${error.message}`,
+          "error"
+        );
+      }
+    }
+
+    /*
+     * Conteúdo externo é exibido como texto simples.
+     * Assim, HTML vindo da API não é executado no navegador.
+     */
+    function renderPlainContent(container, content) {
+      container.replaceChildren();
+      if (content === null || content === undefined || content === "") return;
+      const text = (typeof content === "string" ? content : JSON.stringify(content, null, 2)).replace(/\r/g, "");
+      let paragraph = [];
+      let list = null;
+      const addInline = (el, value) => {
+        const safe = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        el.innerHTML = safe.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>").replace(/`(.+?)`/g, "<code>$1</code>");
+      };
+      const flush = () => { if (!paragraph.length) return; const p = document.createElement("p"); addInline(p, paragraph.join(" ")); container.append(p); paragraph = []; };
+      const closeList = () => { if (list) { container.append(list); list = null; } };
+      for (const raw of text.split("\n")) {
+        const line = raw.trim();
+        if (!line || /^---+$/.test(line)) { flush(); closeList(); continue; }
+        const heading = line.match(/^(#{1,3})\s+(.+)$/);
+        if (heading) { flush(); closeList(); const title = heading[2].replace(/\*/g, "").trim().toLowerCase(); if (/^relatório do treinador/.test(title) || /^dados em falta$/.test(title) || /^próximo objetivo$/.test(title)) continue; const h = document.createElement(heading[1].length === 1 ? "h2" : heading[1].length === 2 ? "h3" : "h4"); addInline(h, heading[2]); container.append(h); continue; }
+        const item = line.match(/^[-*•]\s+(.+)$/);
+        if (item) { flush(); if (!list) list = document.createElement("ul"); const li = document.createElement("li"); addInline(li, item[1]); list.append(li); continue; }
+        closeList(); paragraph.push(line);
+      }
+      flush(); closeList();
+    }
+    /*
+     * Geração de treino
+     *
+     * Envia os campos do formulário para /api/generate-workout.
+     * A integração de Telegram continua sendo responsabilidade do backend.
+     */
+    async function generateWorkout(formData) {
+      const payload = {
+        goal: formData.get("goal"),
+        level: formData.get("level"),
+        duration: null,
+        location: formData.get("location"),
+        availability: formData.get("availability"),
+        trainingMetric: formData.get("trainingMetric"),
+        fthr: formData.get("fthr") ? Number(formData.get("fthr")) : null,
+        ftp: formData.get("ftp") ? Number(formData.get("ftp")) : null,
+        notes: String(formData.get("notes") || "").trim(),
+        plannedDate: String(formData.get("plannedDate") || ""),
+        recovery: {
+          sleepTotalMinutes: Math.round(Number(String(formData.get("sleepDuration")).replace(",", ".")) * 60),
+          restingHR: Number(formData.get("restingHR")),
+          hrvMs: Number(formData.get("hrvMs")),
+          wakingFeeling: "normal",
+          fatigue: Number(formData.get("fatigue"))
+        }
+      };
+
+      const data = await apiRequest(API.generateWorkout, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
+      if (data && typeof data === "object") {
+        if (data.success === false || data.ok === false) {
+          throw new Error(
+            data.message || data.error || "Não foi possível gerar o treino."
+          );
+        }
+      }
+
+      return data;
+    }
+
+    function renderWorkoutMarkdown(container, markdown) {
+      container.replaceChildren();
+      const lines = String(markdown || "").replace(/\r/g, "").split("\n");
+      let list = null;
+      let paragraph = [];
+      const formatInlineMarkdown = (text) => {
+        const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        return escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*(.+?)\*/g, "<em>$1</em>")
+          .replace(/`(.+?)`/g, "<code>$1</code>");
+      };
+      const flushParagraph = () => {
+        if (!paragraph.length) return;
+        const p = document.createElement("p");
+        p.innerHTML = formatInlineMarkdown(paragraph.join(" "));
+        container.append(p);
+        paragraph = [];
+      };
+      const closeList = () => {
+        if (list) { container.append(list); list = null; }
+      };
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line || /^---+$/.test(line)) {
+          flushParagraph(); closeList(); continue;
+        }
+        const heading = line.match(/^(#{1,3})\s+(.+)$/);
+        if (heading) {
+          flushParagraph(); closeList();
+          const h = document.createElement(heading[1].length === 1 ? "h2" : heading[1].length === 2 ? "h3" : "h4");
+          h.innerHTML = formatInlineMarkdown(heading[2]);
+          container.append(h); continue;
+        }
+        const item = line.match(/^[-*•]\s+(.+)$/);
+        if (item) {
+          flushParagraph();
+          if (!list) list = document.createElement("ul");
+          const li = document.createElement("li");
+          li.innerHTML = formatInlineMarkdown(item[1]);
+          list.append(li); continue;
+        }
+        closeList();
+        paragraph.push(line);
+      }
+      flushParagraph(); closeList();
+    }
+
+    function renderWorkoutBars(markdown) {
+      const bars = $("#workoutBars");
+      const card = $("#workoutChartCard");
+      if (!bars || !card) return;
+      const duration = Math.max(20, Number($("#workoutDuration")?.value) || 60);
+      const text = String(markdown || "").toLowerCase();
+      const interval = /interval|tiro|sprint|vo2|repetiç|repetic|4x|5x|6x|8x|limiar/.test(text);
+      const values = [];
+      const count = 24;
+      for (let i = 0; i < count; i++) {
+        const t = i / (count - 1);
+        let v;
+        if (t < .15) v = .28 + (t / .15) * .22;
+        else if (t > .86) v = .72 - ((t - .86) / .14) * .43;
+        else if (interval) {
+          const phase = (t - .15) / .71;
+          v = (.48 + (Math.sin(phase * Math.PI * 8) > .15 ? .38 : .04));
+        } else v = .48 + .18 * Math.sin(((t - .15) / .71) * Math.PI);
+        values.push(Math.max(.12, Math.min(.98, v)));
+      }
+      bars.replaceChildren();
+      values.forEach((v, i) => {
+        const bar = document.createElement("span");
+        const level = v < .4 ? "easy" : v < .62 ? "moderate" : v < .82 ? "hard" : "peak";
+        bar.className = "workout-bar " + level;
+        bar.style.height = Math.round(18 + v * 112) + "px";
+        bar.title = Math.round((duration / count) * (i + 1)) + " min · " + ({easy:"Leve",moderate:"Moderado",hard:"Forte",peak:"Máximo"}[level]);
+        bars.appendChild(bar);
+      });
+      $("#workoutChartDuration").textContent = "Fim · " + duration + " min";
+      card.hidden = false;
+    }
+
+    function workoutToText(data) {
+      if (typeof data === "string") {
+        return data;
+      }
+
+      if (!data || typeof data !== "object") {
+        return "O servidor não retornou os detalhes do treino.";
+      }
+
+      const candidate =
+        data.workout ??
+        data.treino ??
+        data.content ??
+        data.conteudo ??
+        data.result ??
+        data.text ??
+        data.message ??
+        data.mensagem ??
+        data.data;
+
+      if (typeof candidate === "string") {
+        return candidate;
+      }
+
+      if (candidate && typeof candidate === "object") {
+        return JSON.stringify(candidate, null, 2);
+      }
+
+      return JSON.stringify(data, null, 2);
+    }
+
+    $("#loginForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const button = $("#loginButton");
+      const email = $("#loginEmail").value.trim();
+      const password = $("#loginPassword").value;
+
+      setMessage($("#globalMessage"));
+      setLoading(button, true, "Entrando...");
+
+      try {
+        await login(email, password);
+
+        setMessage(
+          $("#globalMessage"),
+          "Login realizado. Bem-vindo ao Pedal Coach!",
+          "success"
+        );
+      } catch (error) {
+        setMessage(
+          $("#globalMessage"),
+          `Falha no login: ${error.message}`,
+          "error"
+        );
+      } finally {
+        setLoading(button, false);
+      }
+    });
+
+    $("#showRecoveryButton").addEventListener("click", () => {
+      $("#recoverySection").hidden = !$("#recoverySection").hidden;
+
+      if (!$("#recoverySection").hidden && $("#loginEmail").value) {
+        $("#recoveryEmail").value = $("#loginEmail").value.trim();
+      }
+    });
+
+    $("#hideRecoveryButton").addEventListener("click", () => {
+      $("#recoverySection").hidden = true;
+    });
+
+    /*
+     * O endpoint de check-in não estava entre os endpoints conhecidos.
+     * Para não inventar uma rota nem aparentar salvar dados sem salvá-los,
+     * este formulário informa quando o backend ainda não oferece esse serviço.
+     *
+     * Quando existir uma rota real de check-in, conecte-a nesta função.
+     */
+    $("#recoveryForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      setMessage(
+        $("#globalMessage"),
+        "O formulário está pronto, mas o envio do check-in precisa ser conectado à rota correspondente no backend. Nenhum dado foi enviado ou salvo.",
+        "warning"
+      );
+    });
+
+    $("#analyzeLastRideButton").addEventListener("click", async () => {
+      const button = $("#analyzeLastRideButton");
+      const result = $("#lastRideResult");
+      const meta = $("#lastRideMeta");
+      result.hidden = true;
+      result.replaceChildren();
+      meta.textContent = "";
+      setMessage($("#lastRideMessage"));
+      setLoading(button, true, "Buscando e analisando...");
+      try {
+        const data = await apiRequest(API.analyzeLastRide, { method: "POST", body: JSON.stringify({}) });
+        if (data.activity) {
+          const a = data.activity;
+          const date = a.start_date_local ? new Date(a.start_date_local.replace(" ", "T")).toLocaleString("pt-BR") : "";
+          const duration = Number.isFinite(Number(a.moving_time)) ? Math.round(Number(a.moving_time) / 60) + " min" : "";
+          const distance = Number.isFinite(Number(a.distance)) && Number(a.distance) > 0 ? (Number(a.distance) / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " km" : "";
+          meta.textContent = [a.name || "Último pedal", date, distance, duration].filter(Boolean).join(" · ");
+        }
+        renderWorkoutMarkdown(result, data.analysis || "A IA não retornou uma análise.");
+        result.hidden = false;
+        setMessage($("#lastRideMessage"), "Análise concluída.", "success");
+        result.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (error) {
+        setMessage($("#lastRideMessage"), error.message || "Não foi possível analisar o último treino.", "error");
+      } finally {
+        setLoading(button, false);
+      }
+    });
+
+    // Importação local de sono exportado pelo HealthSave (CSV/JSON).
+    const HEALTH_SAVE_STORAGE_KEY = "pedalCoach.healthSave.sleep.v1";
+
+    function parseHealthSaveDate(value) {
+      if (value === undefined || value === null || value === "") return null;
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function parseHealthSaveCsv(text) {
+      const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).filter(line => line.trim());
+      if (lines.length < 2) throw new Error("O CSV não contém linhas de dados.");
+      const delimiter = (lines[0].match(/;/g) || []).length > (lines[0].match(/,/g) || []).length ? ";" : ",";
+      const parseRow = line => {
+        const out = []; let value = ""; let quoted = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"' && line[i + 1] === '"' && quoted) { value += '"'; i++; }
+          else if (ch === '"') quoted = !quoted;
+          else if (ch === delimiter && !quoted) { out.push(value); value = ""; }
+          else value += ch;
+        }
+        out.push(value); return out;
+      };
+      const headers = parseRow(lines[0]).map(x => x.trim().toLowerCase().replace(/^"|"$/g, ""));
+      return lines.slice(1).map(line => {
+        const cols = parseRow(line); const row = {};
+        headers.forEach((h, i) => row[h] = (cols[i] || "").trim());
+        return row;
+      });
+    }
+
+    function extractHealthSaveSleep(payload, isCsv) {
+      let rows = [];
+      if (isCsv) {
+        rows = payload;
+      } else {
+        // HealthSave também exporta métricas agregadas por dia:
+        // { date, metric: "sleep_total", unit: "hours", value }.
+        // Esse formato não possui início/fim e deve ser tratado à parte.
+        if (Array.isArray(payload) && payload.some(item =>
+          item && typeof item === "object" && item.metric && item.date !== undefined
+        )) {
+          rows = payload;
+        } else {
+          const collect = (obj, inheritedMetric = "") => {
+            if (!obj) return;
+            if (Array.isArray(obj)) { obj.forEach(item => collect(item, inheritedMetric)); return; }
+            if (typeof obj !== "object") return;
+            const metric = String(obj.metric || obj.type || obj.quantityType || inheritedMetric).toLowerCase();
+            if (Array.isArray(obj.samples)) {
+              obj.samples.forEach(sample => rows.push({ ...sample, metric: sample.metric || metric }));
+            }
+            // Alguns JSONs do HealthSave agrupam os registros dentro de objetos;
+            // nesses casos a amostra pode ter date/unit/value, sem startDate/endDate.
+            if ((obj.date || obj.startDate || obj.start_date || obj.start) &&
+                (obj.metric || obj.type || obj.quantityType || obj.value !== undefined)) {
+              rows.push({ ...obj, metric: obj.metric || obj.type || obj.quantityType || metric });
+            }
+            Object.entries(obj).forEach(([key, value]) => {
+              if (key !== "samples" && value && typeof value === "object") collect(value, metric || key.toLowerCase());
+            });
+          };
+          collect(payload);
+        }
+      }
+
+      const metricOf = row => String(row.metric || row.type || row.quantity_type || row.name || "").toLowerCase();
+      const sleepRows = rows.filter(row => /sleep|sono|asleep|inbed/.test(metricOf(row)));
+      if (!sleepRows.length) throw new Error("Não encontrei registros de sono. O arquivo precisa conter métricas de sono, como sleep_total ou Sleep Analysis.");
+
+      // Extrai FC de repouso e amostras de FC sempre que estiverem disponíveis.
+      const heartRateRows = rows.filter(row => /^(heart_rate|heartrate|fc|frequencia_cardiaca)$/.test(metricOf(row)) && Number.isFinite(Number(row.value)));
+      const restingRows = rows.filter(row => /^(resting_heart_rate|restingheart_rate|fc_repouso|frequencia_cardiaca_repouso)$/.test(metricOf(row)) && Number.isFinite(Number(row.value)));
+      const hrvRows = rows.filter(row => /^(heart_rate_variability|heartratevariability|hrv|hrv_ms|variabilidade_frequencia_cardiaca)$/.test(metricOf(row)) && Number.isFinite(Number(row.value)));
+      const latestValue = list => list.map(row => ({ row, date: parseHealthSaveDate(row.date || row.startDate || row.start_date || row.start) })).filter(x => x.date).sort((a,b) => b.date-a.date)[0];
+      const latestResting = latestValue(restingRows);
+      const latestHrv = latestValue(hrvRows);
+      // Agrupa os estágios de sono pela data local mais recente.
+      // HealthSave pode não exportar sleep_total nem horários de início/fim;
+      // nesse caso, a duração é a soma de core/light + deep + REM.
+      const rowDateKey = row => {
+        const raw = String(row.date || row.startDate || row.start_date || row.start || "");
+        const match = raw.match(/^(\\d{4}-\\d{2}-\\d{2})/);
+        return match ? match[1] : "";
+      };
+      const stageKeys = {
+        sleep_core: "core", sleep_light: "core", sleep_deep: "deep",
+        sleep_rem: "rem", sleep_awake: "awake"
+      };
+      const allStageRows = sleepRows.filter(row => stageKeys[metricOf(row)] && Number.isFinite(Number(row.value)));
+      const totalsForDay = sleepRows.filter(row => metricOf(row) === "sleep_total" && Number.isFinite(Number(row.value)));
+      const latestTotalForDay = latestValue(totalsForDay);
+      const latestStageRow = latestValue(allStageRows);
+      const latestDay = latestTotalForDay
+        ? rowDateKey(latestTotalForDay.row)
+        : latestStageRow ? rowDateKey(latestStageRow.row) : "";
+      const dayRows = rows.filter(row => rowDateKey(row) === latestDay);
+      const stages = { core: 0, deep: 0, rem: 0, awake: 0 };
+      for (const row of dayRows) {
+        const key = stageKeys[metricOf(row)];
+        if (key && Number.isFinite(Number(row.value))) {
+          const unit = String(row.unit || "").toLowerCase();
+          const amount = Number(row.value);
+          stages[key] += unit.includes("min") ? amount : unit.includes("sec") ? amount / 60 : amount * 60;
+        }
+      }
+      const hasStages = Object.values(stages).some(value => value > 0);
+      for (const key of Object.keys(stages)) stages[key] = Math.round(stages[key]);
+      const dayHeartRows = dayRows.filter(row => /^(heart_rate|heartrate|fc)$/.test(metricOf(row)));
+      const heartValues = dayHeartRows.map(row => Number(row.value)).filter(value => value >= 25 && value <= 220);
+      const heartRateAverage = heartValues.length ? Math.round(heartValues.reduce((sum, value) => sum + value, 0) / heartValues.length) : null;
+
+      // Se houver sleep_total, ele prevalece; caso contrário, soma os estágios
+      // efetivamente dormidos (leve + profundo + REM), sem contar períodos acordado.
+      if (totalsForDay.length) {
+        const latest = latestValue(totalsForDay);
+        if (!latest) throw new Error("Encontrei sleep_total, mas não reconheci a data do registro.");
+        const unit = String(latest.row.unit || "").toLowerCase();
+        const rawValue = Number(latest.row.value);
+        const totalMinutes = Math.round(unit.includes("hour") || unit === "h" ? rawValue * 60 : unit.includes("min") ? rawValue : rawValue / 60);
+        if (totalMinutes <= 0) throw new Error("O registro sleep_total não contém uma duração válida.");
+        return {
+          totalMinutes, hours: Math.floor(totalMinutes / 60), minutes: totalMinutes % 60,
+          date: latest.date.toISOString(), start: null, end: latest.date.toISOString(),
+          importedAt: new Date().toISOString(), samples: totalsForDay.length, metric: "sleep_total",
+          restingHR: latestResting ? Math.round(Number(latestResting.row.value)) : null,
+          restingHRDate: latestResting?.date.toISOString() || null,
+          hrvMs: latestHrv ? Math.round(Number(latestHrv.row.value)) : null,
+          hrvDate: latestHrv?.date.toISOString() || null,
+          heartRateAverage, heartRateSamples: heartValues.length, stages: hasStages ? stages : null
+        };
+      }
+      if (hasStages) {
+        const totalMinutes = stages.core + stages.deep + stages.rem;
+        if (totalMinutes <= 0) throw new Error("Os estágios foram encontrados, mas não há duração de sono válida.");
+        const date = latestStageRow?.date.toISOString() || new Date().toISOString();
+        return {
+          totalMinutes, hours: Math.floor(totalMinutes / 60), minutes: totalMinutes % 60,
+          date, start: null, end: date, importedAt: new Date().toISOString(),
+          samples: allStageRows.length, metric: "sleep_stages",
+          restingHR: latestResting ? Math.round(Number(latestResting.row.value)) : null,
+          restingHRDate: latestResting?.date.toISOString() || null,
+          hrvMs: latestHrv ? Math.round(Number(latestHrv.row.value)) : null,
+          hrvDate: latestHrv?.date.toISOString() || null,
+          heartRateAverage, heartRateSamples: heartValues.length, stages
+        };
+      }
+
+      const intervals = sleepRows.map(row => {
+        const start = parseHealthSaveDate(row.startDate || row.start_date || row.start || row.startdate);
+        const end = parseHealthSaveDate(row.endDate || row.end_date || row.end || row.enddate);
+        return start && end && end > start ? [start.getTime(), end.getTime()] : null;
+      }).filter(Boolean).sort((a, b) => a[0] - b[0]);
+      if (!intervals.length) throw new Error("Encontrei a métrica de sono, mas não reconheci as colunas de início e fim. Se o JSON tiver sleep_total, confirme que ele inclui os campos date, unit e value.");
+      const sessions = [];
+      for (const interval of intervals) {
+        const session = sessions[sessions.length - 1];
+        if (session && interval[0] - session[session.length - 1][1] <= 3 * 60 * 60 * 1000) session.push(interval);
+        else sessions.push([interval]);
+      }
+      const latestSession = sessions[sessions.length - 1];
+      const merged = [];
+      for (const interval of latestSession) {
+        const last = merged[merged.length - 1];
+        if (last && interval[0] <= last[1]) last[1] = Math.max(last[1], interval[1]);
+        else merged.push(interval.slice());
+      }
+      const totalMinutes = Math.round(merged.reduce((sum, interval) => sum + (interval[1] - interval[0]), 0) / 60000);
+      const latestEnd = new Date(Math.max(...merged.map(x => x[1])));
+      const latestStart = new Date(Math.min(...merged.map(x => x[0])));
+      return {
+        totalMinutes,
+        hours: Math.floor(totalMinutes / 60),
+        minutes: totalMinutes % 60,
+        start: latestStart.toISOString(),
+        end: latestEnd.toISOString(),
+        importedAt: new Date().toISOString(),
+        samples: sleepRows.length,
+        restingHR: latestResting ? Math.round(Number(latestResting.row.value)) : null,
+        restingHRDate: latestResting?.date.toISOString() || null,
+        hrvMs: latestHrv ? Math.round(Number(latestHrv.row.value)) : null,
+        hrvDate: latestHrv?.date.toISOString() || null,
+        heartRateAverage,
+        heartRateSamples: heartValues.length,
+        stages: hasStages ? stages : null
+      };
+    }
+
+    function showHealthSaveStatus(message, isError = false) {
+      const el = $("#healthSaveStatus");
+      el.textContent = message;
+      el.style.color = isError ? "var(--danger)" : "var(--success)";
+    }
+
+    function applySavedHealthSaveSleep() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(HEALTH_SAVE_STORAGE_KEY) || "null");
+        if (!saved || !Number.isFinite(saved.totalMinutes)) return;
+        $("#sleepDuration").value = saved.hours + "h " + String(saved.minutes).padStart(2, "0") + "min";
+        if (Number.isFinite(saved.restingHR) && saved.restingHR >= 25 && saved.restingHR <= 220) $("#restingHR").value = String(saved.restingHR);
+        if (Number.isFinite(saved.hrvMs) && saved.hrvMs >= 0 && saved.hrvMs <= 300) $("#hrvMs").value = String(saved.hrvMs);
+        if (Number.isFinite(saved.heartRateAverage)) $("#sleepHeartRateAverage").value = String(saved.heartRateAverage);
+        if (saved.stages) {
+          const mins = saved.stages;
+          $("#sleepStagesSummary").value = "Leve " + mins.core + " min · Profundo " + mins.deep + " min · REM " + mins.rem + " min · Acordado " + mins.awake + " min";
+        }
+        const details = [];
+        details.push("Sono " + saved.hours + "h " + saved.minutes + "min");
+        if (Number.isFinite(saved.restingHR)) details.push("FC repouso " + saved.restingHR + " bpm");
+        if (Number.isFinite(saved.hrvMs)) details.push("HRV " + String(Math.round(saved.hrvMs)) + " ms");
+        if (Number.isFinite(saved.heartRateAverage)) details.push("FC média durante o sono " + saved.heartRateAverage + " bpm (" + saved.heartRateSamples + " medições)");
+        if (saved.stages) details.push("estágios do sono importados");
+        showHealthSaveStatus("Importado: " + details.join(" · ") + ". FC média durante o sono é informativa e não substitui FC de repouso.");
+      } catch (error) {
+        showHealthSaveStatus("Não foi possível recuperar o sono salvo neste navegador.", true);
+      }
+    }
+
+    const workoutMetric = $("#workoutMetric");
+    const syncWorkoutMetricFields = () => {
+      const usePower = workoutMetric.value === "power";
+      $("#workoutFthrField").hidden = usePower;
+      $("#workoutFthr").required = !usePower;
+      $("#workoutPowerField").hidden = !usePower;
+      $("#workoutPower").required = usePower;
+    };
+    workoutMetric.addEventListener("change", syncWorkoutMetricFields);
+    syncWorkoutMetricFields();
+    const localToday = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+      .toISOString().slice(0, 10);
+    $("#plannedWorkoutDate").value = localToday;
+
+    $("#workoutForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const button = $("#generateButton");
+      const formData = new FormData(event.currentTarget);
+
+      setMessage($("#workoutMessage"));
+      setLoading(button, true, "Gerando e conferindo o treino...");
+
+      try {
+        const data = await generateWorkout(formData);
+        const text = workoutToText(data);
+
+        state.lastWorkoutText = text;
+
+        $("#workoutResult").replaceChildren();
+
+        renderWorkoutMarkdown($("#workoutResult"), text);
+        renderWorkoutBars(text);
+
+        $("#workoutResultSection").hidden = false;
+
+        let resultMessage = "Treino gerado com sucesso.";
+        let resultMessageType = "success";
+        if (data.intervalsSent) {
+          resultMessage += " Também foi publicado no calendário do Intervals.icu.";
+        } else if (data.intervalsErrorCode === "missing_config") {
+          resultMessage += " O envio ao Intervals.icu ainda depende da configuração da chave INTERVALS_API_KEY no Cloudflare.";
+          resultMessageType = "warning";
+        } else if (data.intervalsErrorCode) {
+          resultMessage += " Não foi possível publicar no Intervals.icu: " +
+            (data.intervalsMessage || "erro não identificado") +
+            ". O treino continua disponível no site e no Telegram.";
+          resultMessageType = "warning";
+        }
+        setMessage($("#workoutMessage"), resultMessage, resultMessageType);
+
+        $("#workoutResultSection").scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      } catch (error) {
+        setMessage(
+          $("#workoutMessage"),
+          `Não foi possível gerar o treino: ${error.message}`,
+          "error"
+        );
+      } finally {
+        setLoading(button, false);
+      }
+    });
+
+    $("#copyWorkoutButton").addEventListener("click", async () => {
+      if (!state.lastWorkoutText) {
+        setMessage($("#workoutMessage"), "Não há treino para copiar.", "warning");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(state.lastWorkoutText);
+
+        setMessage(
+          $("#workoutMessage"),
+          "Treino copiado para a área de transferência.",
+          "success"
+        );
+      } catch {
+        setMessage(
+          $("#workoutMessage"),
+          "Não foi possível copiar automaticamente. Selecione e copie o texto do treino.",
+          "warning"
+        );
+      }
+    });
+
+    $("#newWorkoutButton").addEventListener("click", () => {
+      $("#workoutForm").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
+
+    $("#refreshReportsButton").addEventListener("click", async () => {
+      const button = $("#refreshReportsButton");
+
+      setLoading(button, true, "Atualizando...");
+
+      try {
+        await Promise.all([loadReports(), loadWeeklyStats()]);
+      } finally {
+        setLoading(button, false);
+      }
+    });
+
+    async function loadFourWeekSummary() {
+      const message = $("#fourWeekSummaryMessage");
+      const chart = $("#fourWeekSummaryChart");
+      setMessage(message, "Buscando atividades na Garmin...");
+      try {
+        const data = await apiRequest("/api/weekly-summary", { method: "GET" });
+        if (!data || data.error || !Array.isArray(data.weeks)) throw new Error(data?.message || "Não foi possível carregar as quatro semanas.");
+        const metrics = [
+          { key: "tss", label: "TSS", css: "tss", format: value => Math.round(value).toLocaleString("pt-BR") },
+          { key: "hours", label: "Horas", css: "hours", format: value => value.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " h" },
+          { key: "distanceKm", label: "Distância", css: "distance", format: value => value.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " km" }
+        ];
+        const maxima = Object.fromEntries(metrics.map(metric => [metric.key, Math.max(0, ...data.weeks.map(week => Number(week[metric.key]) || 0))]));
+        chart.replaceChildren();
+        // Exibe primeiro a semana mais recente, sem alterar os dados recebidos da Garmin.
+        [...data.weeks].reverse().forEach(week => {
+          const group = document.createElement("div");
+          group.className = "week-column";
+          const bars = document.createElement("div");
+          bars.className = "week-bars";
+          metrics.forEach(metric => {
+            const value = week[metric.key];
+            const wrap = document.createElement("div");
+            wrap.className = "week-bar-wrap";
+            const valueLabel = document.createElement("span");
+            valueLabel.className = "week-bar-value";
+            valueLabel.textContent = value == null ? "—" : metric.format(Number(value));
+            const bar = document.createElement("div");
+            bar.className = "week-bar " + metric.css;
+            const ratio = value == null || !maxima[metric.key] ? 0 : Number(value) / maxima[metric.key];
+            bar.style.height = ratio ? Math.max(4, ratio * 82) + "%" : "3px";
+            bar.title = metric.label + ": " + (value == null ? "sem dados" : metric.format(Number(value)));
+            bar.setAttribute("aria-label", bar.title);
+            wrap.append(valueLabel, bar);
+            bars.append(wrap);
+          });
+          const label = document.createElement("div");
+          label.className = "week-label";
+          label.textContent = week.label;
+          group.append(bars, label);
+          chart.append(group);
+        });
+        setMessage(message, data.weeks.every(week => week.sessions === 0) ? "Nenhum pedal encontrado nas quatro semanas." : "");
+      } catch (error) {
+        chart.replaceChildren();
+        setMessage(message, "Resumo das quatro semanas indisponível: " + error.message, "warning");
+      }
+    }
+
+    $("#refreshFourWeekSummaryButton").addEventListener("click", loadFourWeekSummary);
+
+    // O modo noturno é o padrão. A preferência escolhida fica salva neste navegador.
+    const themeToggle = $("#themeToggle");
+    const savedTheme = (() => {
+      try { return localStorage.getItem("pedalCoachTheme"); } catch { return null; }
+    })();
+    const applyTheme = theme => {
+      const isDark = theme !== "light";
+      document.documentElement.dataset.theme = isDark ? "dark" : "light";
+      themeToggle.textContent = isDark ? "☀️ Ativar modo claro" : "🌙 Ativar modo noturno";
+      themeToggle.setAttribute("aria-pressed", String(isDark));
+      themeToggle.setAttribute("aria-label", isDark ? "Desativar modo noturno" : "Ativar modo noturno");
+      try { localStorage.setItem("pedalCoachTheme", isDark ? "dark" : "light"); } catch {}
+    };
+    applyTheme(savedTheme === "light" ? "light" : "dark");
+    themeToggle.addEventListener("click", () => {
+      applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    });
+
+    // Modo público: abre a plataforma sem exigir e-mail ou senha.
+    // O acesso aos dados ainda depende das permissões configuradas nas APIs.
+    $("#loginSection").hidden = true;
+    $("#logoutButton").hidden = true;
+    showDashboard({ name: "Ciclista" });
+    loadReports();
+    loadWeeklyStats();
+    loadFourWeekSummary();
+
+    $("#logoutButton").addEventListener("click", () => {
+      // Não há sessão de usuário para encerrar no modo público.
+    });
+  </script>
+</body>
+</html>

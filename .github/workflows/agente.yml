@@ -1,0 +1,923 @@
+
+name: Agente Esportivo
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  treinador-ia:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Obter ficheiros do projeto
+        uses: actions/checkout@v4
+
+      - name: Gerar relatório com Intervals.icu e Gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          INTERVALS_API_KEY: ${{ secrets.INTERVALS_API_KEY }}
+        run: |
+          python - <<'PY'
+          import io
+          import os
+          import re
+          import json
+          import csv
+          import time
+          import base64
+          import unicodedata
+          import urllib.request
+          import urllib.error
+          import urllib.parse
+          from datetime import datetime, timedelta, timezone
+
+          # --------------------------------------------------
+          # 1. Datas e configuração
+          # --------------------------------------------------
+
+          fuso_brasil = timezone(timedelta(hours=-3))
+          agora = datetime.now(fuso_brasil)
+          hoje = agora.date()
+
+          inicio_atual = hoje - timedelta(days=6)
+          fim_atual = hoje
+          inicio_anterior = hoje - timedelta(days=13)
+          fim_anterior = hoje - timedelta(days=7)
+
+          os.makedirs("relatorios", exist_ok=True)
+
+          caminho_relatorio = f"relatorios/relatorio_{hoje}.md"
+          caminho_historico = "relatorios/historico_semanal.csv"
+
+          campos = [
+              "data", "horas_treino", "tss_7_dias",
+              "sono_horas", "fc_repouso", "hrv_ms",
+              "fadiga_1_10", "motivacao_1_5", "notas"
+          ]
+
+          def normalizar(valor):
+              valor = unicodedata.normalize("NFKD", str(valor or ""))
+              valor = "".join(
+                  c for c in valor if not unicodedata.combining(c)
+              )
+              return re.sub(r"[^a-z0-9]+", " ", valor.lower()).strip()
+
+          def numero(valor):
+              if valor is None or isinstance(valor, bool):
+                  return None
+              try:
+                  return float(str(valor).strip().replace(",", "."))
+              except (ValueError, TypeError):
+                  return None
+
+          def ler_data(valor):
+              if not valor:
+                  return None
+              try:
+                  return datetime.fromisoformat(
+                      str(valor).replace("Z", "+00:00")
+                  ).date()
+              except (ValueError, TypeError):
+                  try:
+                      return datetime.strptime(
+                          str(valor)[:10], "%Y-%m-%d"
+                      ).date()
+                  except ValueError:
+                      return None
+
+          def duracao_segundos(valor):
+              if valor is None:
+                  return None
+              if isinstance(valor, (int, float)):
+                  return max(0, int(valor))
+
+              texto = str(valor).strip()
+              if texto.isdigit():
+                  return int(texto)
+
+              partes = texto.split(":")
+              try:
+                  if len(partes) == 3:
+                      return (
+                          int(partes[0]) * 3600
+                          + int(partes[1]) * 60
+                          + int(float(partes[2]))
+                      )
+                  if len(partes) == 2:
+                      return int(partes[0]) * 60 + int(float(partes[1]))
+              except ValueError:
+                  return None
+              return None
+
+          def formatar_tempo(segundos):
+              if segundos is None:
+                  return "não informado"
+              segundos = int(segundos)
+              horas = segundos // 3600
+              minutos = (segundos % 3600) // 60
+              segundos_restantes = segundos % 60
+              return f"{horas:02d}:{minutos:02d}:{segundos_restantes:02d}"
+
+          def carga_atividade(atividade):
+              valor = atividade.get("icu_training_load")
+              if valor is None:
+                  valor = atividade.get("icu_tss")
+              return numero(valor)
+
+          def e_ciclismo(atividade):
+              campos = (
+                  atividade.get("type"),
+                  atividade.get("sport"),
+                  atividade.get("sport_type"),
+                  atividade.get("activity_type"),
+                  atividade.get("name"),
+                  atividade.get("description"),
+                  atividade.get("sub_type")
+              )
+
+              texto = " ".join(
+                  normalizar(valor)
+                  for valor in campos
+                  if valor
+              )
+
+              termos = (
+                  "ride", "cycling", "cycle",
+                  "bicycle", "bike", "btt",
+                  "ciclismo", "bicicleta",
+                  "mountainbike", "gravel"
+              )
+
+              return any(
+                  termo in texto for termo in termos
+              )
+
+          def carregar_historico():
+              if not os.path.exists(caminho_historico):
+                  return []
+              with open(
+                  caminho_historico, "r",
+                  encoding="utf-8-sig", newline=""
+              ) as f:
+                  return list(csv.DictReader(f))
+
+          historico_anterior = carregar_historico()
+
+          # --------------------------------------------------
+          # 2. Ler ficheiros de instruções e check-in
+          # --------------------------------------------------
+
+          conteudos = []
+
+          for nome in ("treinador.md", "checkin.md", "dados_hoje.md"):
+              if os.path.exists(nome):
+                  with open(nome, "r", encoding="utf-8") as f:
+                      conteudos.append(
+                          f"\n\n===== {nome} =====\n{f.read()}"
+                      )
+              else:
+                  conteudos.append(
+                      f"\n\n===== {nome} =====\nFicheiro não encontrado."
+                  )
+                  print(f"Aviso: falta o ficheiro {nome}")
+
+          # --------------------------------------------------
+          # 3. Consultar atividades pelo CSV oficial do Intervals.icu
+          # --------------------------------------------------
+
+          chave_api = os.environ.get("INTERVALS_API_KEY", "").strip()
+
+          if not chave_api:
+              raise SystemExit(
+                  "Falta o segredo INTERVALS_API_KEY."
+              )
+
+          parametros = urllib.parse.urlencode({
+              "oldest": str(inicio_anterior),
+              "newest": str(fim_atual)
+          })
+
+          url = (
+              "https://intervals.icu/api/v1/athlete/0/athlete-activities.csv?"
+              + parametros
+          )
+
+          credenciais = base64.b64encode(
+              f"API_KEY:{chave_api}".encode("utf-8")
+          ).decode("ascii")
+
+          pedido_api = urllib.request.Request(
+              url,
+              headers={
+                  "Authorization": f"Basic {credenciais}",
+                  "User-Agent": (
+                      "Mozilla/5.0 (X11; Linux x86_64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/131.0.0.0 Safari/537.36"
+                  ),
+                  "Accept": "text/csv"
+              },
+              method="GET"
+          )
+
+          texto_csv = None
+
+          for tentativa in range(3):
+              try:
+                  with urllib.request.urlopen(
+                      pedido_api, timeout=60
+                  ) as resposta:
+                      texto_csv = resposta.read().decode("utf-8-sig")
+                  break
+
+              except urllib.error.HTTPError as erro:
+                  detalhe = erro.read().decode(
+                      "utf-8", errors="replace"
+                  )
+
+                  if (
+                      erro.code not in (429, 500, 502, 503, 504)
+                      or tentativa == 2
+                  ):
+                      print(
+                          f"Erro Intervals.icu HTTP {erro.code}: "
+                          f"{detalhe[:1200]}"
+                      )
+                      raise SystemExit(1)
+
+                  espera = 5 * (tentativa + 1)
+                  print(
+                      f"Intervals.icu HTTP {erro.code}. "
+                      f"Nova tentativa em {espera}s."
+                  )
+                  time.sleep(espera)
+
+              except urllib.error.URLError as erro:
+                  if tentativa == 2:
+                      print(f"Falha de ligação ao Intervals.icu: {erro}")
+                      raise SystemExit(1)
+
+                  espera = 5 * (tentativa + 1)
+                  print(
+                      f"Falha de ligação. Nova tentativa em {espera}s."
+                  )
+                  time.sleep(espera)
+
+          if texto_csv is None:
+              raise SystemExit(
+                  "Não foi possível obter o CSV do Intervals.icu."
+              )
+
+          leitor = csv.DictReader(io.StringIO(texto_csv))
+
+          if not leitor.fieldnames:
+              raise SystemExit(
+                  "O CSV do Intervals.icu não contém cabeçalhos."
+              )
+
+          print("Colunas recebidas do Intervals.icu:")
+          print(", ".join(leitor.fieldnames))
+
+          def obter_campo(linha, alternativas):
+              valores = {
+                  normalizar(chave): valor
+                  for chave, valor in linha.items()
+                  if chave
+              }
+
+              for alternativa in alternativas:
+                  chave = normalizar(alternativa)
+                  valor = valores.get(chave)
+
+                  if valor is not None and str(valor).strip():
+                      return valor
+
+              return ""
+
+          resposta_api = []
+
+          for linha in leitor:
+              atividade = {
+                  "id": obter_campo(linha, [
+                      "id", "activity id"
+                  ]),
+                  "type": obter_campo(linha, [
+                      "type", "tipo", "activity type",
+                      "tipo de atividade", "sport", "sport type"
+                  ]),
+                  "type": obter_campo(linha, [
+                      "type", "activity type", "sport",
+                      "sport type"
+                  ]),
+                  "start_date_local": obter_campo(linha, [
+                      "start_date_local", "start date local",
+                      "local start", "start date",
+                      "activity date", "date"
+                  ]),
+                  "start_date": obter_campo(linha, [
+                      "start_date", "start date utc"
+                  ]),
+                  "moving_time": obter_campo(linha, [
+                      "moving_time", "moving time",
+                      "duration", "duration seconds"
+                  ]),
+                  "elapsed_time": obter_campo(linha, [
+                      "elapsed_time", "elapsed time"
+                  ]),
+                  "distance": obter_campo(linha, [
+                      "distance", "distância", "distancia",
+                      "distance m"
+                  ]),
+                  "icu_training_load": obter_campo(linha, [
+                      "icu_training_load", "icu training load",
+                      "training load", "tss",
+                      "training stress score"
+                  ]),
+                  "icu_tss": obter_campo(linha, [
+                      "icu_tss", "icu tss"
+                  ]),
+                  "icu_weighted_avg_watts": obter_campo(linha, [
+                      "icu_weighted_avg_watts",
+                      "icu_normalized_watts",
+                      "icu weighted avg watts",
+                      "normalized power"
+                  ]),
+                  "average_watts": obter_campo(linha, [
+                      "average_watts", "average watts",
+                      "avg watts"
+                  ]),
+                  "average_heartrate": obter_campo(linha, [
+                      "average_heartrate",
+                      "average heart rate",
+                      "avg heart rate"
+                  ]),
+                  "description": obter_campo(linha, [
+                      "description"
+                  ]),
+                  "sub_type": obter_campo(linha, [
+                      "sub_type", "sub type"
+                  ])
+              }
+
+              resposta_api.append(atividade)
+              
+          if not resposta_api:
+              raise SystemExit(
+                  "O Intervals.icu devolveu zero atividades. "
+                  "A execução foi interrompida para evitar "
+                  "um relatório incorreto."
+              )
+              
+          print(f"Registos recebidos do CSV: {len(resposta_api)}")
+
+          if resposta_api and not any(
+              a["type"] or a["name"] for a in resposta_api
+          ):
+              raise SystemExit(
+                  "Os registos foram recebidos, mas os cabeçalhos "
+                  "de nome e tipo não foram reconhecidos. "
+                  "Consulta as colunas impressas acima."
+              )
+
+          if resposta_api and not any(
+              a["start_date_local"] or a["start_date"]
+              for a in resposta_api
+          ):
+              raise SystemExit(
+                  "As atividades foram recebidas, mas a coluna "
+                  "de data não foi reconhecida. Consulta os "
+                  "cabeçalhos impressos acima."
+              )
+
+          # Deduplicar pelos IDs fornecidos pela API.
+          atividades = []
+          ids_vistos = set()
+
+          for atividade in resposta_api:
+              if not isinstance(atividade, dict):
+                  continue
+
+              data_atividade = ler_data(
+                  atividade.get("start_date_local")
+                  or atividade.get("start_date")
+              )
+
+              if not data_atividade:
+                  continue
+
+              if not (inicio_anterior <= data_atividade <= fim_atual):
+                  continue
+
+              identificador = atividade.get("id")
+
+              if identificador is None:
+                  identificador = (
+                      data_atividade,
+                      atividade.get("name"),
+                      atividade.get("type"),
+                      atividade.get("moving_time")
+                  )
+
+              if identificador in ids_vistos:
+                  continue
+
+              ids_vistos.add(identificador)
+
+              atividade["_data"] = data_atividade
+              atividade["_duracao"] = duracao_segundos(
+                  atividade.get("moving_time")
+                  if atividade.get("moving_time") is not None
+                  else atividade.get("elapsed_time")
+              )
+              atividade["_carga"] = carga_atividade(atividade)
+              atividade["_ciclismo"] = e_ciclismo(atividade)
+              atividades.append(atividade)
+
+          atividades.sort(
+              key=lambda a: (
+                  a["_data"],
+                  str(a.get("start_date_local", ""))
+              )
+          )
+
+          ciclismo = [a for a in atividades if a["_ciclismo"]]
+          outras_atividades = [a for a in atividades if not a["_ciclismo"]]
+
+          print("Verificação das atividades recebidas:")
+          for atividade in atividades:
+              print(
+                  f"- tipo={atividade.get('type')!r} | "
+                  f"nome={atividade.get('name')!r} | "
+                  f"ciclismo={atividade['_ciclismo']}"
+              )
+
+          if atividades and not ciclismo:
+              raise SystemExit(
+                  "ERRO: foram recebidas atividades, mas nenhuma "
+                  "foi identificada como ciclismo. "
+                  "Verifica os tipos e nomes acima nos registos."
+              )
+
+          def atividades_periodo(lista, inicio, fim):
+              return [
+                  a for a in lista
+                  if inicio <= a["_data"] <= fim
+              ]
+
+          ciclismo_atual = atividades_periodo(
+              ciclismo, inicio_atual, fim_atual
+          )
+          ciclismo_anterior = atividades_periodo(
+              ciclismo, inicio_anterior, fim_anterior
+          )
+
+          def calcular_periodo(lista):
+              # A consulta API foi concluída: um período sem sessões
+              # tem volume zero, não representa dados indisponíveis.
+              duracoes = [a["_duracao"] for a in lista]
+              cargas = [a["_carga"] for a in lista]
+
+              duracao_completa = all(v is not None for v in duracoes)
+              carga_completa = all(v is not None for v in cargas)
+
+              segundos = (
+                  sum(duracoes)
+                  if duracao_completa else None
+              )
+              carga = (
+                  sum(cargas)
+                  if carga_completa else None
+              )
+
+              return {
+                  "quantidade": len(lista),
+                  "segundos": segundos,
+                  "horas": (
+                      segundos / 3600
+                      if segundos is not None else None
+                  ),
+                  "carga": carga,
+                  "duracoes_completas": duracao_completa,
+                  "cargas_completas": carga_completa,
+                  "sem_carga": sum(v is None for v in cargas),
+                  "sem_duracao": sum(v is None for v in duracoes)
+              }
+
+          atual = calcular_periodo(ciclismo_atual)
+          anterior = calcular_periodo(ciclismo_anterior)
+
+          def formatar_numero(valor, casas=1):
+              if valor is None:
+                  return "indisponível"
+              return f"{valor:.{casas}f}"
+
+          def linhas_atividades(lista):
+              if not lista:
+                  return "Nenhuma atividade de ciclismo registada."
+
+              linhas = []
+              for a in lista:
+                  nome = a.get("name") or "Atividade sem nome"
+                  tipo = a.get("type") or "Tipo não informado"
+                  data = a["_data"]
+                  tempo = formatar_tempo(a["_duracao"])
+
+                  distancia = numero(a.get("distance"))
+                  distancia_texto = (
+                      f"{distancia / 1000:.2f} km"
+                      if distancia is not None else "distância indisponível"
+                  )
+
+                  carga = a["_carga"]
+                  carga_texto = (
+                      f"{carga:.1f}" if carga is not None
+                      else "não disponível"
+                  )
+
+                  potencia = (
+                      a.get("icu_weighted_avg_watts")
+                      or a.get("weighted_average_watts")
+                      or a.get("normalized_power")
+                  )
+                  potencia_media = (
+                      a.get("icu_average_watts")
+                      or a.get("average_watts")
+                  )
+                  fc = (
+                      a.get("average_heartrate")
+                      or a.get("average_heart_rate")
+                  )
+
+                  extras = []
+                  if numero(potencia) is not None:
+                      extras.append(f"NP {numero(potencia):.0f} W")
+                  if numero(potencia_media) is not None:
+                      extras.append(f"potência média {numero(potencia_media):.0f} W")
+                  if numero(fc) is not None:
+                      extras.append(f"FC média {numero(fc):.0f} bpm")
+
+                  complemento = (
+                      "; " + ", ".join(extras) if extras else ""
+                  )
+
+                  linhas.append(
+                      f"- {data} | {tipo} | {nome} | "
+                      f"{tempo} | {distancia_texto} | "
+                      f"carga Intervals.icu: {carga_texto}"
+                      f"{complemento}"
+                  )
+
+              return "\n".join(linhas)
+
+          print("Fonte de atividades: Intervals.icu")
+          print(f"Atividades recebidas pela API: {len(atividades)}")
+          print(f"Atividades de ciclismo: {len(ciclismo)}")
+          print(f"Atividades não identificadas como ciclismo: {len(outras_atividades)}")
+          print(
+              f"Semana atual ({inicio_atual} a {fim_atual}): "
+              f"{atual['quantidade']} sessões, "
+              f"{formatar_numero(atual['horas'], 2)} h, "
+              f"carga {formatar_numero(atual['carga'])}"
+          )
+          print(
+              f"Semana anterior ({inicio_anterior} a {fim_anterior}): "
+              f"{anterior['quantidade']} sessões, "
+              f"{formatar_numero(anterior['horas'], 2)} h, "
+              f"carga {formatar_numero(anterior['carga'])}"
+          )
+
+          resumo_semanal = f"""
+          ===== COMPARAÇÃO CALCULADA DIRETAMENTE DA API =====
+
+          Os valores abaixo foram calculados pelo script a partir
+          das atividades devolvidas pelo Intervals.icu. Usa estes
+          valores e estas datas, mesmo se o histórico CSV ainda só
+          tiver uma linha.
+
+          SEMANA ATUAL: {inicio_atual} a {fim_atual}
+          - Número de sessões de ciclismo: {atual['quantidade']}
+          - Volume de ciclismo em horas: {formatar_numero(atual['horas'], 2)}
+          - Carga total Intervals.icu: {formatar_numero(atual['carga'])}
+          - Sessões sem carga disponível: {atual['sem_carga']}
+          - Sessões sem duração disponível: {atual['sem_duracao']}
+
+          SEMANA ANTERIOR: {inicio_anterior} a {fim_anterior}
+          - Número de sessões de ciclismo: {anterior['quantidade']}
+          - Volume de ciclismo em horas: {formatar_numero(anterior['horas'], 2)}
+          - Carga total Intervals.icu: {formatar_numero(anterior['carga'])}
+          - Sessões sem carga disponível: {anterior['sem_carga']}
+          - Sessões sem duração disponível: {anterior['sem_duracao']}
+
+          ATIVIDADES DA SEMANA ATUAL:
+          {linhas_atividades(ciclismo_atual)}
+
+          ATIVIDADES DA SEMANA ANTERIOR:
+          {linhas_atividades(ciclismo_anterior)}
+
+          OUTRAS ATIVIDADES NOS MESMOS 14 DIAS:
+          {linhas_atividades(outras_atividades)}
+          """
+
+          conteudos.append("\n\n" + resumo_semanal)
+
+          # --------------------------------------------------
+          # 4. Incluir histórico CSV já existente
+          # --------------------------------------------------
+
+          if historico_anterior:
+              conteudos.append(
+                  "\n\n===== HISTÓRICO DIÁRIO JÁ GUARDADO =====\n"
+                  + json.dumps(
+                      historico_anterior[-14:],
+                      ensure_ascii=False
+                  )
+              )
+
+          # --------------------------------------------------
+          # 5. Construir o pedido ao Gemini
+          # --------------------------------------------------
+
+          contexto = f"""
+          És um treinador especializado em ciclismo de estrada e BTT.
+
+          Data do relatório: {hoje}.
+          Fonte principal das atividades: Intervals.icu.
+
+          Os cálculos semanais fornecidos pelo script foram obtidos
+          diretamente da API e são a referência para quantidade de
+          sessões, horas e carga. Não substituas estes valores por
+          totais calculados a partir de outros ficheiros.
+
+          A carga de treino vem de icu_training_load, com icu_tss
+          como alternativa quando o primeiro campo não está disponível.
+          Trata zero como um valor válido. Quando faltar carga ou
+          duração de alguma atividade, não apresentes um total parcial
+          como se fosse completo.
+
+          A semana atual e a semana anterior estão definidas em janelas
+          consecutivas de sete dias e têm as suas datas explícitas.
+          Faz a comparação agora com os valores fornecidos pela API,
+          mesmo que o histórico CSV ainda só tenha uma linha.
+          Calcula diferenças absolutas. Calcula diferenças percentuais
+          apenas quando o valor anterior é válido e maior que zero.
+          Se o valor anterior for zero, explica que a percentagem não
+          pode ser calculada de forma útil.
+
+          Usa também o histórico CSV, se houver, como contexto adicional.
+          Não inventes dados, zonas, FTP, limiares, sono ou tendências.
+          Distingue os dados medidos dos relatos do atleta.
+          Não confundas a carga de treino com uma avaliação clínica
+          da recuperação.
+
+          Usa o ficheiro dados_hoje.md para o check-in atual. Se não
+          existir check-in de hoje, diz isso claramente e não assumes
+          que as sensações de ontem continuam iguais.
+
+          Responde em português europeu, de forma prática e direta.
+          Evita texto genérico ou secções repetitivas. Não digas que
+          é impossível comparar semanas, porque os dados dos dois
+          períodos já foram calculados acima.
+
+          Organiza o relatório em:
+          1. Resumo
+          2. Evolução e carga de treino
+          3. Comparação das duas semanas, mostrando as datas
+          4. Recuperação, com base nos dados disponíveis
+          5. Recomendação para hoje
+          6. Próximo objetivo
+          7. Dados em falta
+
+          A recomendação diária deve indicar uma sessão concreta e
+          prudente, adequada aos dados disponíveis, ou descanso se
+          houver sinais relevantes de fadiga, dores ou recuperação
+          insuficiente. Não inventes zonas ou intensidades específicas
+          sem dados que as sustentem.
+          """
+
+          texto = contexto + "".join(conteudos)
+
+          chave_gemini = os.environ.get("GEMINI_API_KEY", "").strip()
+          if not chave_gemini:
+              raise SystemExit(
+                  "Falta o segredo GEMINI_API_KEY nas configurações do GitHub."
+              )
+
+          dados_gemini = {
+              "contents": [{
+                  "parts": [{"text": texto}]
+              }]
+          }
+
+          pedido_gemini = urllib.request.Request(
+              "https://generativelanguage.googleapis.com/v1beta/"
+              "models/gemini-2.5-flash:generateContent",
+              data=json.dumps(dados_gemini).encode("utf-8"),
+              headers={
+                  "Content-Type": "application/json",
+                  "x-goog-api-key": chave_gemini
+              },
+              method="POST"
+          )
+
+          # --------------------------------------------------
+          # 6. Chamar Gemini com tentativas automáticas
+          # --------------------------------------------------
+
+          resultado = None
+
+          for tentativa in range(3):
+              try:
+                  with urllib.request.urlopen(
+                      pedido_gemini, timeout=120
+                  ) as resposta:
+                      resultado = json.loads(
+                          resposta.read().decode("utf-8")
+                      )
+                  break
+
+              except urllib.error.HTTPError as erro:
+                  mensagem = erro.read().decode(
+                      "utf-8", errors="replace"
+                  )
+
+                  if (
+                      erro.code not in (429, 500, 502, 503, 504)
+                      or tentativa == 2
+                  ):
+                      print(
+                          f"Erro na API Gemini HTTP {erro.code}: "
+                          f"{mensagem[:1500]}"
+                      )
+                      raise SystemExit(1)
+
+                  espera = 10 * (tentativa + 1)
+                  print(
+                      f"Gemini HTTP {erro.code}. "
+                      f"Nova tentativa em {espera}s."
+                  )
+                  time.sleep(espera)
+
+              except urllib.error.URLError as erro:
+                  if tentativa == 2:
+                      print(f"Falha de ligação ao Gemini: {erro}")
+                      raise SystemExit(1)
+
+                  espera = 10 * (tentativa + 1)
+                  print(f"Falha de ligação. Nova tentativa em {espera}s.")
+                  time.sleep(espera)
+
+          try:
+              texto_resposta = (
+                  resultado["candidates"][0]["content"]["parts"][0]["text"]
+              )
+          except (TypeError, KeyError, IndexError):
+              print("O Gemini não devolveu texto utilizável.")
+              print(json.dumps(resultado, ensure_ascii=False)[:2000])
+              raise SystemExit(1)
+
+          # --------------------------------------------------
+          # 7. Guardar relatório
+          # --------------------------------------------------
+
+          with open(
+              caminho_relatorio, "w", encoding="utf-8"
+          ) as f:
+              f.write(f"# Relatório do treinador — {hoje}\n\n")
+              f.write(texto_resposta + "\n")
+
+          print("\nRELATÓRIO DO TREINADOR")
+          print("=====================")
+          print(texto_resposta)
+          print(f"Relatório guardado: {caminho_relatorio}")
+
+          # --------------------------------------------------
+          # 8. Ler check-in para guardar indicadores no CSV
+          # --------------------------------------------------
+
+          try:
+              with open(
+                  "dados_hoje.md", "r", encoding="utf-8"
+              ) as f:
+                  checkin = f.read()
+          except OSError:
+              checkin = ""
+
+          def valor_checkin(rotulos, padrao):
+              for linha in checkin.splitlines():
+                  linha_normalizada = normalizar(linha)
+                  if any(
+                      normalizar(rotulo) in linha_normalizada
+                      for rotulo in rotulos
+                  ):
+                      encontrado = re.search(
+                          padrao, linha, re.IGNORECASE
+                      )
+                      if encontrado:
+                          return encontrado.group(1).replace(",", ".")
+              return ""
+
+          def ler_sono_horas(texto):
+              for linha in texto.splitlines():
+                  linha_n = normalizar(linha)
+                  if "sono" not in linha_n:
+                      continue
+
+                  # Ex.: "8h33m" ou "8 horas e 33 minutos".
+                  m = re.search(
+                      r"(\d+)\s*(?:horas?|h)\s*(?:e\s*)?"
+                      r"(\d+)\s*(?:minutos?|mins?|m)\b",
+                      linha, re.IGNORECASE
+                  )
+                  if m:
+                      return f"{int(m.group(1)) + int(m.group(2)) / 60:.2f}"
+
+                  # Ex.: "8 horas" ou "8,5 h".
+                  m = re.search(
+                      r"(\d+(?:[.,]\d+)?)\s*(?:horas?|h)\b",
+                      linha, re.IGNORECASE
+                  )
+                  if m:
+                      return m.group(1).replace(",", ".")
+
+              return ""
+
+          sono = ler_sono_horas(checkin)
+          fc = valor_checkin(
+              ["fc em repouso", "frequencia cardiaca em repouso", "fc repouso"],
+              r"(\d{2,3})"
+          )
+          hrv = valor_checkin(["hrv", "vfc"], r"(\d+(?:[.,]\d+)?)")
+          fadiga = valor_checkin(["fadiga"], r"(\d{1,2})(?:\s*/\s*10)?")
+          motivacao = valor_checkin(["motivacao"], r"(\d)(?:\s*/\s*5)?")
+
+          tss_csv = (
+              f"{atual['carga']:.1f}"
+              if atual["carga"] is not None else ""
+          )
+          horas_csv = (
+              f"{atual['horas']:.2f}"
+              if atual["horas"] is not None else ""
+          )
+
+          notas = (
+              f"Fonte: Intervals.icu; período: {inicio_atual} a {fim_atual}; "
+              f"{atual['quantidade']} sessões de ciclismo; "
+              f"{atual['sem_carga']} sem carga; "
+              f"comparação anterior: {inicio_anterior} a {fim_anterior}."
+          )
+
+          nova_linha = {
+              "data": str(hoje),
+              "horas_treino": horas_csv,
+              "tss_7_dias": tss_csv,
+              "sono_horas": sono,
+              "fc_repouso": fc,
+              "hrv_ms": hrv,
+              "fadiga_1_10": fadiga,
+              "motivacao_1_5": motivacao,
+              "notas": notas
+          }
+
+          # --------------------------------------------------
+          # 9. Atualizar histórico sem duplicar a data
+          # --------------------------------------------------
+
+          linhas = [
+              linha for linha in historico_anterior
+              if linha.get("data") != str(hoje)
+          ]
+          linhas.append(nova_linha)
+          linhas.sort(key=lambda linha: linha.get("data", ""))
+
+          with open(
+              caminho_historico,
+              "w",
+              encoding="utf-8-sig",
+              newline=""
+          ) as f:
+              escritor = csv.DictWriter(
+                  f, fieldnames=campos, extrasaction="ignore"
+              )
+              escritor.writeheader()
+              escritor.writerows(linhas)
+
+          print(f"Histórico atualizado: {caminho_historico}")
+          print("Workflow concluído.")
+          PY
+
+      - name: Guardar relatório e histórico no repositório
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add relatorios/
+          if git diff --cached --quiet; then
+            echo "Não há alterações para guardar."
+          else
+            git commit -m "Atualizar relatório e histórico"
+            git push
+          fi
