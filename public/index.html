@@ -1407,17 +1407,11 @@
           <!-- CONVERSA COM O COACH IA -->
           <section class="card" id="coachAiSection" data-nav-section="coach" aria-labelledby="coachAiTitle">
             <div class="card-heading">
-              <div><h2 id="coachAiTitle">Coach IA · Gemini</h2><p>Converse sobre ciclismo, treinamento, recuperação e evolução.</p></div>
+              <div><h2 id="coachAiTitle">Coach IA · Gemini</h2></div>
               <span class="section-number" aria-hidden="true">🧠</span>
             </div>
             <div class="coach-chat">
-              <p class="coach-chat-intro">Tire dúvidas sobre ciclismo, treinos e recuperação. Compartilhe suas métricas para uma orientação mais contextualizada.</p>
               <div id="coachChatLog" class="coach-chat-log" role="log" aria-live="polite" aria-relevant="additions"><div class="coach-message assistant">Olá! 👋 Sou o Coach IA do Treino Lab, conectado ao Gemini. Como posso ajudar na sua evolução como ciclista?</div></div>
-              <div class="coach-chat-suggestions" aria-label="Sugestões de perguntas">
-                <button type="button" data-coach-prompt="Como posso melhorar meu FTP de forma gradual?">Como melhorar meu FTP?</button>
-                <button type="button" data-coach-prompt="Como interpretar CTL, ATL e TSB?">Entender CTL, ATL e TSB</button>
-                <button type="button" data-coach-prompt="Como equilibrar treinos intensos e recuperação durante a semana?">Treino e recuperação</button>
-              </div>
               <form id="coachChatForm" class="coach-chat-form"><textarea id="coachChatInput" rows="1" maxlength="4000" placeholder="Escreva sua pergunta para o Coach IA..." aria-label="Mensagem para o Coach IA" required></textarea><button id="coachChatSend" class="btn btn-primary" type="submit">Enviar</button></form>
               <div id="coachChatStatus" class="coach-chat-status" role="status" aria-live="polite"></div>
             </div>
