@@ -920,6 +920,9 @@
     .pmc-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:12px 0 18px; }
     .pmc-metrics>div { padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--soft-blue); } .pmc-metrics span { display:block; color:var(--muted); font-size:11px; } .pmc-metrics strong { display:block; margin-top:4px; font-size:22px; color:var(--ink); }
     .pmc-chart { min-height:170px; overflow:hidden; } .pmc-chart svg { display:block; width:100%; height:auto; }
+    .pmc-insight { margin:0 0 16px; padding:13px 15px; border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:12px; background:var(--soft-blue); color:var(--ink); font-size:13px; line-height:1.55; }
+    .pmc-insight strong { display:block; margin-bottom:3px; color:var(--navy); font-size:14px; }
+    .layout { margin-bottom:22px; }
     .legend-svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
     .four-week-legend span { display:inline-flex; align-items:center; gap:5px; }
     .four-week-embedded { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); } .four-week-embedded .card-heading h2 { font-size:16px; }
@@ -1360,10 +1363,11 @@
       </div>
           </section>
           <section class="card pmc-card" id="pmcSection">
-            <div class="card-heading"><div><h2>Performance Management Chart</h2><p>Fitness (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
+            <div class="card-heading"><div><h2>Gestão da Performance</h2><p>Condicionamento (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
             <div id="pmcMessage" class="notice" role="status" aria-live="polite">Carregando carga de treino...</div>
-            <div id="pmcMetrics" class="pmc-metrics"><div><span>Fitness · CTL</span><strong id="pmcCtl">—</strong></div><div><span>Fadiga · ATL</span><strong id="pmcAtl">—</strong></div><div><span>Forma · TSB</span><strong id="pmcTsb">—</strong></div></div>
-            <div id="pmcChart" class="pmc-chart" role="img" aria-label="Gráfico de Fitness, Fadiga e Forma nos últimos seis meses"></div><div class="four-week-legend pmc-legend"><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#0ea5e9" stroke="none"/></svg>CTL</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#f59e0b" stroke="none"/></svg>ATL</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#22c55e" stroke="none"/></svg>TSB</span></div>
+            <div id="pmcMetrics" class="pmc-metrics"><div><span>Condicionamento · CTL</span><strong id="pmcCtl">—</strong></div><div><span>Fadiga · ATL</span><strong id="pmcAtl">—</strong></div><div><span>Forma · TSB</span><strong id="pmcTsb">—</strong></div></div>
+            <div id="pmcInsight" class="pmc-insight" role="status" aria-live="polite">A interpretação da sua evolução aparecerá aqui quando os dados forem carregados.</div>
+            <div id="pmcChart" class="pmc-chart" role="img" aria-label="Gráfico de condicionamento, fadiga e forma nos últimos meses"></div><div class="four-week-legend pmc-legend"><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#0ea5e9" stroke="none"/></svg>CTL · Condicionamento</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#f59e0b" stroke="none"/></svg>ATL · Fadiga</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#22c55e" stroke="none"/></svg>TSB · Forma</span></div>
           </section>
 
 
@@ -2450,7 +2454,37 @@
         const data=await apiRequest("/api/fitness-fatigue",{method:"GET"});
         if(!data||data.error||!Array.isArray(data.points)||!data.points.length) throw new Error(data?.message||"Sem dados de CTL/ATL disponíveis.");
         const points=data.points.slice(-90), latest=points[points.length-1];
-        $("#pmcCtl").textContent=Number(latest.fitness).toFixed(1); $("#pmcAtl").textContent=Number(latest.fatigue).toFixed(1); $("#pmcTsb").textContent=Number(latest.form).toFixed(1);
+        const ctl=Number(latest.fitness), atl=Number(latest.fatigue), tsb=Number(latest.form);
+        if (![ctl,atl,tsb].every(Number.isFinite)) throw new Error("Os dados mais recentes de CTL, ATL ou TSB estão incompletos.");
+        $("#pmcCtl").textContent=ctl.toFixed(1); $("#pmcAtl").textContent=atl.toFixed(1); $("#pmcTsb").textContent=tsb.toFixed(1);
+        const previous=points[Math.max(0,points.length-8)];
+        const previousCtl=Number(previous.fitness);
+        const ctlChange=Number.isFinite(previousCtl)?ctl-previousCtl:0;
+        const insight=$("#pmcInsight");
+        let headline,detail;
+        if(tsb < -20) {
+          headline="Fadiga muito elevada";
+          detail="Sua carga recente está bem acima do condicionamento acumulado. Priorize recuperação e observe como você responde antes de aumentar a intensidade.";
+        } else if(tsb < -10) {
+          headline=ctlChange > 1 ? "Você está evoluindo, mas com fadiga alta" : "Atenção à fadiga acumulada";
+          detail=ctlChange > 1 ? "O condicionamento está subindo, porém a carga recente também está alta. Mantenha a recuperação em dia." : "A fadiga está consideravelmente acima do seu condicionamento. Considere aliviar a carga e priorizar a recuperação.";
+        } else if(ctlChange > 1 && tsb <= 5) {
+          headline="Evolução positiva";
+          detail="Seu condicionamento vem aumentando e a carga parece compatível com uma fase de construção. Continue com progressão gradual e recuperação adequada.";
+        } else if(ctlChange < -1) {
+          headline="Condicionamento em queda";
+          detail="Seu CTL recuou em relação à semana passada. Isso pode refletir uma redução recente no volume de treino; avalie se foi planejada.";
+        } else if(tsb > 10) {
+          headline="Boa recuperação";
+          detail="Sua forma está positiva e a fadiga recente está baixa em relação ao condicionamento. Pode ser um bom momento para treinos de qualidade, se estiver se sentindo bem.";
+        } else {
+          headline="Carga relativamente equilibrada";
+          detail="Seu condicionamento está estável e a relação entre fadiga e forma não indica fadiga excessiva. Acompanhe a tendência nos próximos dias.";
+        }
+        insight.replaceChildren();
+        const strong=document.createElement("strong"); strong.textContent=headline;
+        const span=document.createElement("span"); span.textContent=detail+" A leitura considera a tendência dos últimos 7 dias e os valores atuais de CTL, ATL e TSB; não substitui sua percepção de recuperação.";
+        insight.append(strong,span);
         const w=640,h=190,p=24,vals=points.flatMap(x=>[Number(x.fitness),Number(x.fatigue),Number(x.form)]),min=Math.min(0,...vals),max=Math.max(1,...vals),x=i=>p+i/Math.max(1,points.length-1)*(w-2*p),y=v=>h-p-(v-min)/(max-min)*(h-2*p),ns="http://www.w3.org/2000/svg";
         const svg=document.createElementNS(ns,"svg");svg.setAttribute("viewBox","0 0 "+w+" "+h);
         [["fitness","#0ea5e9"],["fatigue","#f59e0b"],["form","#22c55e"]].forEach(([key,color])=>{const path=document.createElementNS(ns,"path");path.setAttribute("fill","none");path.setAttribute("stroke",color);path.setAttribute("stroke-width","2.5");path.setAttribute("stroke-linecap","round");path.setAttribute("d",points.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+","+y(Number(v[key])).toFixed(1)).join(" "));svg.append(path);});
