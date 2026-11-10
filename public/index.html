@@ -937,7 +937,7 @@
     @keyframes skeletonPulse { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
     .workout-bar { position:relative; cursor:help; } .workout-bar:focus { outline:2px solid var(--blue); outline-offset:2px; }
     .mobile-bottom-nav { display:none; }
-    @media(max-width:700px) { .feature-grid { grid-template-columns:1fr; } .landing-intro { padding:20px; } .mobile-bottom-nav { position:fixed; z-index:1000; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(4,1fr); gap:2px; padding:8px 8px calc(8px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--card); box-shadow:0 -8px 24px rgba(0,0,0,.12); } .mobile-bottom-nav[hidden] { display:none; } .mobile-bottom-nav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:48px; color:var(--muted); text-decoration:none; font-size:20px; } .mobile-bottom-nav a small { font-size:10px; font-weight:700; } .mobile-bottom-nav a.active { color:var(--blue); } body { padding-bottom:calc(88px + env(safe-area-inset-bottom)); } .pmc-metrics { gap:6px; } .pmc-metrics>div { padding:9px; } .pmc-metrics strong { font-size:18px; } }
+    @media(max-width:700px) { .feature-grid { grid-template-columns:1fr; } .landing-intro { padding:20px; } .mobile-bottom-nav { position:fixed; z-index:1000; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:2px; padding:8px 8px calc(8px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--card); box-shadow:0 -8px 24px rgba(0,0,0,.12); } .mobile-bottom-nav[hidden] { display:none; } .mobile-bottom-nav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:48px; color:var(--muted); text-decoration:none; font-size:20px; } .mobile-bottom-nav a small { font-size:10px; font-weight:700; } .mobile-bottom-nav a.active { color:var(--blue); } body { padding-bottom:calc(88px + env(safe-area-inset-bottom)); } .pmc-metrics { gap:6px; } .pmc-metrics>div { padding:9px; } .pmc-metrics strong { font-size:18px; } }
   </style>
 <!-- deploy-refresh: 2026-10-22 -->
 </head>
@@ -1341,7 +1341,7 @@
 
         <aside class="side-column">
           <!-- RESUMO SEMANAL DE TREINO -->
-          <section class="card" aria-labelledby="weeklyStatsTitle">
+          <section class="card" id="weeklySummarySection" data-nav-section="week" aria-labelledby="weeklyStatsTitle">
             <div class="card-heading"><div><h2 id="weeklyStatsTitle">Resumo semanal</h2><p id="weeklyStatsPeriod">Carga acumulada desde segunda-feira</p></div></div>
             <div id="weeklyStatsMessage" class="notice" role="status" aria-live="polite"></div><div id="weeklyStatsSkeleton" class="skeleton-stack compact" hidden aria-hidden="true"><span></span><span></span></div>
             <div class="weekly-stats-grid">
@@ -1368,7 +1368,7 @@
         <p class="muted small">A altura das barras é proporcional ao maior valor de cada indicador nas quatro semanas. Os valores exibidos mantêm as unidades reais.</p>
       </div>
           </section>
-          <section class="card pmc-card" id="pmcSection">
+          <section class="card pmc-card" id="pmcSection" data-nav-section="performance">
             <div class="card-heading"><div><h2>Gestão da Performance</h2><p>Condicionamento (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
             <div id="pmcMessage" class="notice" role="status" aria-live="polite">Carregando carga de treino...</div>
             <div id="pmcMetrics" class="pmc-metrics"><div><span>Condicionamento · CTL</span><strong id="pmcCtl">—</strong></div><div><span>Fadiga · ATL</span><strong id="pmcAtl">—</strong></div><div><span>Forma · TSB</span><strong id="pmcTsb">—</strong></div></div>
@@ -1414,7 +1414,7 @@
       <strong>Treino Lab</strong> · Treine com propósito. Evolua com consistência.
     </footer>
   </main>
-  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#dashboardHome" data-nav="home" aria-label="Início"><span aria-hidden="true">🏠</span><small>Início</small></a><a href="#lastRideAnalysisCard" data-nav="analyze" aria-label="Analisar pedal"><span aria-hidden="true">🔍</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout" aria-label="Gerar treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#reportsSection" data-nav="reports" aria-label="Relatórios"><span aria-hidden="true">📊</span><small>Relatórios</small></a></nav>
+  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#lastRideAnalysisCard" data-nav="analyze" aria-label="Analisar meu último pedal"><span aria-hidden="true">🔍</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#lastRideAnalysisCard" data-nav="coach" aria-label="Coach IA: recursos de inteligência artificial"><span aria-hidden="true">🧠</span><small>Coach IA</small></a><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a></nav>
 
   <script>
     "use strict";
