@@ -234,7 +234,9 @@
 
     .header-tools {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
       flex: 0 0 auto;
     }
 
@@ -976,6 +978,7 @@
 
       <div class="header-tools">
         <button id="themeToggle" class="btn theme-toggle" type="button" aria-pressed="true" aria-label="Desativar modo noturno">☀️ Ativar modo claro</button>
+        <button id="refreshPageButton" class="btn theme-toggle" type="button" aria-label="Atualizar página">↻ Atualizar página</button>
       </div>
     </div>
   </header>
@@ -2645,6 +2648,9 @@
     applyTheme(savedTheme === "light" ? "light" : "dark");
     themeToggle.addEventListener("click", () => {
       applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    });
+    $("#refreshPageButton").addEventListener("click", () => {
+      window.location.reload();
     });
 
     // Modo público: abre a plataforma sem exigir e-mail ou senha.
