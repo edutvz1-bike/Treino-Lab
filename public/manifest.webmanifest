@@ -1,6 +1,6 @@
 {
-  "name": "Pedal Coach",
-  "short_name": "Pedal Coach",
+  "name": "Treino Lab",
+  "short_name": "Treino Lab",
   "description": "Acompanhamento e treinos personalizados de ciclismo.",
   "start_url": "/",
   "scope": "/",
@@ -9,7 +9,7 @@
   "theme_color": "#101b35",
   "icons": [
     {
-      "src": "/novo-icone-treino-lab.jpg",
+      "src": "/novo-icone-treino-lab.jpg?v=2",
       "sizes": "any",
       "type": "image/jpeg",
       "purpose": "any"
