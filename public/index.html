@@ -3,16 +3,16 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101b35">
   <link rel="icon" type="image/jpeg" href="/novo-icone-treino-lab.jpg">
-  <link rel="apple-touch-icon" href="/novo-icone-treino-lab.jpg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/novo-icone-treino-lab.jpg">
   <link rel="manifest" href="/manifest.webmanifest">
 
-  <title>Pedal Coach | Seu treino inteligente</title>
+  <title>Treino Lab | Seu treino inteligente</title>
   <meta
     name="description"
-    content="Pedal Coach: acompanhamento, relatórios e treinos de ciclismo personalizados."
+    content="Treino Lab: acompanhamento, relatórios e treinos de ciclismo personalizados."
   >
 
   <style>
@@ -906,6 +906,28 @@
         transition-duration: 0.01ms !important;
       }
     }
+    /* Melhorias de UX, PWA e iOS */
+    html { scroll-padding-top: calc(18px + env(safe-area-inset-top)); }
+    body { padding-top: env(safe-area-inset-top); padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+    .app-header { padding-top: env(safe-area-inset-top); }
+    .landing-intro { margin:0 0 24px; padding:26px; border-radius:18px; color:#fff; background:linear-gradient(125deg,#101b35,#1c4770); }
+    .landing-intro h1 { margin:0; font-size:clamp(26px,4vw,38px); line-height:1.12; }
+    .landing-copy { color:#d5e6f7; margin:10px 0 20px; }
+    .feature-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .feature-card { padding:16px; border:1px solid rgba(255,255,255,.2); border-radius:14px; background:rgba(255,255,255,.08); }
+    .feature-card h3 { margin:8px 0 4px; font-size:15px; color:#fff; } .feature-card p { margin:0; color:#d5e6f7; font-size:12px; }
+    .feature-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:10px; color:#fff; background:rgba(24,184,237,.25); font-size:22px; }
+    .pmc-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:12px 0 18px; }
+    .pmc-metrics>div { padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--soft-blue); } .pmc-metrics span { display:block; color:var(--muted); font-size:11px; } .pmc-metrics strong { display:block; margin-top:4px; font-size:22px; color:var(--ink); }
+    .pmc-chart { min-height:170px; overflow:hidden; } .pmc-chart svg { display:block; width:100%; height:auto; }
+    .legend-svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
+    .four-week-legend span { display:inline-flex; align-items:center; gap:5px; }
+    .skeleton-stack { display:grid; gap:10px; margin:12px 0 16px; } .skeleton-stack span { display:block; height:18px; border-radius:8px; background:linear-gradient(90deg,var(--line) 25%,var(--soft-blue) 50%,var(--line) 75%); background-size:200% 100%; animation:skeletonPulse 1.35s ease-in-out infinite; }
+    .skeleton-stack span:nth-child(2) { width:88%; height:48px; } .skeleton-stack span:nth-child(3) { width:72%; height:34px; } .skeleton-stack span:nth-child(4) { width:94%; height:22px; } .skeleton-stack.compact { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    @keyframes skeletonPulse { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+    .workout-bar { position:relative; cursor:help; } .workout-bar:focus { outline:2px solid var(--blue); outline-offset:2px; }
+    .mobile-bottom-nav { display:none; }
+    @media(max-width:700px) { .feature-grid { grid-template-columns:1fr; } .landing-intro { padding:20px; } .mobile-bottom-nav { position:fixed; z-index:1000; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(4,1fr); gap:2px; padding:8px 8px calc(8px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--card); box-shadow:0 -8px 24px rgba(0,0,0,.12); } .mobile-bottom-nav[hidden] { display:none; } .mobile-bottom-nav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:48px; color:var(--muted); text-decoration:none; font-size:20px; } .mobile-bottom-nav a small { font-size:10px; font-weight:700; } .mobile-bottom-nav a.active { color:var(--blue); } body { padding-bottom:calc(88px + env(safe-area-inset-bottom)); } .pmc-metrics { gap:6px; } .pmc-metrics>div { padding:9px; } .pmc-metrics strong { font-size:18px; } }
   </style>
 <!-- deploy-refresh: 2026-10-22 -->
 </head>
@@ -916,7 +938,7 @@
       <div class="brand">
         <img class="brand-mark" src="/novo-icone-treino-lab.jpg" alt="Ícone Treino Lab" />
         <div class="brand-copy">
-          <p class="brand-name">Pedal Coach</p>
+          <p class="brand-name">Treino Lab</p>
           <p class="brand-subtitle">Inteligência para sua evolução</p>
         </div>
       </div>
@@ -933,6 +955,7 @@
 
     <!-- ACESSO -->
     <section id="loginSection" class="card">
+      <div class="landing-intro"><p class="eyebrow">TREINO INTELIGENTE PARA CICLISTAS</p><h1>Entenda sua evolução. Treine com propósito.</h1><p class="landing-copy">Dados de treino, inteligência artificial e sessões estruturadas em um só lugar.</p><div class="feature-grid"><article class="feature-card"><span class="feature-icon">↗</span><h3>Intervals.icu</h3><p>Conecte seus dados e acompanhe sua carga de treino.</p></article><article class="feature-card"><span class="feature-icon">✦</span><h3>Análise com IA</h3><p>Transforme seus pedais em informações práticas.</p></article><article class="feature-card"><span class="feature-icon">⚡</span><h3>Treinos estruturados</h3><p>Gere sessões alinhadas ao seu objetivo e recuperação.</p></article></div></div>
       <div class="card-heading">
         <div>
           <h2>Acesse sua conta</h2>
@@ -1081,7 +1104,7 @@
 
     <!-- ÁREA AUTENTICADA -->
     <section id="dashboardSection" hidden>
-      <div class="profile-summary">
+      <div class="profile-summary" id="dashboardHome">
         
         <div>
           <span id="profileEmail"></span>
@@ -1096,7 +1119,7 @@
       <div class="layout">
         <div class="main-column">
           <!-- ANÁLISE DO ÚLTIMO TREINO -->
-          <section class="card" id="lastRideAnalysisCard">
+          <section class="card" id="lastRideAnalysisCard" data-nav-section="analyze">
             <div class="card-heading">
               <div>
                 <h2>Analisar meu último pedal</h2>
@@ -1109,12 +1132,12 @@
             <button id="analyzeLastRideButton" class="btn btn-primary" type="button">
               Analisar último treino
             </button>
-            <div id="lastRideMeta" class="small muted" style="margin-top:12px"></div>
+            <div id="lastRideMeta" class="small muted" style="margin-top:12px"></div><div id="lastRideSkeleton" class="skeleton-stack" hidden aria-hidden="true"><span></span><span></span><span></span></div>
             <div id="lastRideResult" class="report-content" hidden></div>
           </section>
 
           <!-- GERAÇÃO DE TREINO -->
-          <section class="card">
+          <section class="card" id="workoutSection" data-nav-section="workout">
             <div class="card-heading">
               <div>
                 <h2>Gerar meu treino</h2>
@@ -1122,7 +1145,7 @@
               </div>
             </div>
 
-            <div id="workoutMessage" class="notice" role="status" aria-live="polite"></div>
+            <div id="workoutMessage" class="notice" role="status" aria-live="polite"></div><div id="workoutSkeleton" class="skeleton-stack" hidden aria-hidden="true"><span></span><span></span><span></span><span></span></div>
 
             <form id="workoutForm">
               <div class="form-grid">
@@ -1273,9 +1296,9 @@
             <div id="workoutResult" class="report-content"></div>
 
             <div class="actions">
-              <button id="copyWorkoutButton" class="btn btn-outline" type="button">
-                Copiar treino
-              </button>
+              <button id="copyWorkoutButton" class="btn btn-outline" type="button">Copiar treino</button>
+              <button id="exportZwoButton" class="btn btn-outline" type="button">Exportar .ZWO</button>
+              <button id="exportErgButton" class="btn btn-outline" type="button">Exportar .ERG</button>
               <button id="newWorkoutButton" class="btn btn-primary" type="button">
                 Criar outro treino
               </button>
@@ -1308,13 +1331,19 @@
           <!-- RESUMO SEMANAL DE TREINO -->
           <section class="card" aria-labelledby="weeklyStatsTitle">
             <div class="card-heading"><div><h2 id="weeklyStatsTitle">Resumo semanal</h2><p id="weeklyStatsPeriod">Carga acumulada desde segunda-feira</p></div></div>
-            <div id="weeklyStatsMessage" class="notice" role="status" aria-live="polite"></div>
+            <div id="weeklyStatsMessage" class="notice" role="status" aria-live="polite"></div><div id="weeklyStatsSkeleton" class="skeleton-stack compact" hidden aria-hidden="true"><span></span><span></span></div>
             <div class="weekly-stats-grid">
               <div class="weekly-stat"><span>TSS semanal</span><strong id="weeklyTss">—</strong></div>
               <div class="weekly-stat"><span>Distância</span><strong id="weeklyDistance">—</strong></div>
               <div class="weekly-stat"><span>Horas de treino</span><strong id="weeklyHours">—</strong></div>
               <div class="weekly-stat"><span>Sessões</span><strong id="weeklySessions">—</strong></div>
             </div>
+          </section>
+          <section class="card pmc-card" id="pmcSection">
+            <div class="card-heading"><div><h2>Performance Management Chart</h2><p>Fitness (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
+            <div id="pmcMessage" class="notice" role="status" aria-live="polite">Carregando carga de treino...</div>
+            <div id="pmcMetrics" class="pmc-metrics"><div><span>Fitness · CTL</span><strong id="pmcCtl">—</strong></div><div><span>Fadiga · ATL</span><strong id="pmcAtl">—</strong></div><div><span>Forma · TSB</span><strong id="pmcTsb">—</strong></div></div>
+            <div id="pmcChart" class="pmc-chart" role="img" aria-label="Gráfico de Fitness, Fadiga e Forma nos últimos seis meses"></div>
           </section>
 
 
@@ -1330,18 +1359,18 @@
           </div>
           <button id="refreshFourWeekSummaryButton" class="btn btn-outline" type="button">Atualizar</button>
         </div>
-        <div id="fourWeekSummaryMessage" class="notice" role="status" aria-live="polite">Carregando resumo...</div>
+        <div id="fourWeekSummaryMessage" class="notice" role="status" aria-live="polite"></div><div id="fourWeekSkeleton" class="skeleton-stack compact" hidden aria-hidden="true"><span></span><span></span></div>
         <div class="four-week-legend">
-          <span><i class="bar-key tss"></i>TSS</span>
-          <span><i class="bar-key hours"></i>Horas</span>
-          <span><i class="bar-key distance"></i>Distância</span>
+          <span><svg class="legend-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7z"/></svg>TSS</span>
+          <span><svg class="legend-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Horas</span>
+          <span><svg class="legend-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17 9 7l4 6 3-4 5 8z"/></svg>Distância</span>
         </div>
         <div id="fourWeekSummaryChart" class="four-week-chart" aria-label="Gráfico de barras 3D com TSS, horas de treino e distância por semana"></div>
         <p class="muted small">A altura das barras é proporcional ao maior valor de cada indicador nas quatro semanas. Os valores exibidos mantêm as unidades reais.</p>
       </section>
 
           <!-- RELATÓRIOS -->
-          <section class="card">
+          <section class="card" id="reportsSection" data-nav-section="reports">
             <div class="card-heading">
               <div>
                 <h2>Meus relatórios</h2>
@@ -1368,9 +1397,10 @@
     </section>
 
     <footer class="footer">
-      <strong>Pedal Coach</strong> · Treine com propósito. Evolua com consistência.
+      <strong>Treino Lab</strong> · Treine com propósito. Evolua com consistência.
     </footer>
   </main>
+  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#dashboardHome" data-nav="home"><span>⌂</span><small>Início</small></a><a href="#lastRideAnalysisCard" data-nav="analyze"><span>⌁</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout"><span>⚡</span><small>Treino</small></a><a href="#reportsSection" data-nav="reports"><span>▤</span><small>Relatórios</small></a></nav>
 
   <script>
     "use strict";
@@ -1438,6 +1468,8 @@
         }
       }
     }
+
+    function toggleSkeleton(id, visible) { const node=document.getElementById(id); if(node) node.hidden=!visible; }
 
     async function apiRequest(path, options = {}) {
       const headers = new Headers(options.headers || {});
@@ -1567,13 +1599,15 @@
       state.token = data.token || data.accessToken || null;
 
       showDashboard(user);
-      await Promise.all([loadReports(), loadWeeklyStats()]);
+      syncMobileNavigation();
+      await Promise.all([loadReports(), loadWeeklyStats(), loadFourWeekSummary(), loadPmc()]);
 
       return data;
     }
 
     async function loadWeeklyStats() {
       const message = $("#weeklyStatsMessage");
+      toggleSkeleton("weeklyStatsSkeleton", true);
       setMessage(message);
       try {
         const data = await apiRequest("/api/weekly-stats", { method: "GET" });
@@ -1590,7 +1624,7 @@
         }
       } catch (error) {
         setMessage(message, `Resumo semanal indisponível: ${error.message}`, "warning");
-      }
+      } finally { toggleSkeleton("weeklyStatsSkeleton", false); }
     }
 
     /*
@@ -1988,7 +2022,7 @@
 
         setMessage(
           $("#globalMessage"),
-          "Login realizado. Bem-vindo ao Pedal Coach!",
+          "Login realizado. Bem-vindo ao Treino Lab!",
           "success"
         );
       } catch (error) {
@@ -2039,6 +2073,7 @@
       result.replaceChildren();
       meta.textContent = "";
       setMessage($("#lastRideMessage"));
+      toggleSkeleton("lastRideSkeleton", true);
       setLoading(button, true, "Buscando e analisando...");
       try {
         const data = await apiRequest(API.analyzeLastRide, { method: "POST", body: JSON.stringify({}) });
@@ -2056,6 +2091,7 @@
       } catch (error) {
         setMessage($("#lastRideMessage"), error.message || "Não foi possível analisar o último treino.", "error");
       } finally {
+        toggleSkeleton("lastRideSkeleton", false);
         setLoading(button, false);
       }
     });
@@ -2300,6 +2336,7 @@
       const formData = new FormData(event.currentTarget);
 
       setMessage($("#workoutMessage"));
+      toggleSkeleton("workoutSkeleton", true);
       setLoading(button, true, "Gerando e conferindo o treino...");
 
       try {
@@ -2341,6 +2378,7 @@
           "error"
         );
       } finally {
+        toggleSkeleton("workoutSkeleton", false);
         setLoading(button, false);
       }
     });
@@ -2387,10 +2425,26 @@
       }
     });
 
+    async function loadPmc() {
+      const chart=$("#pmcChart"), message=$("#pmcMessage"); setMessage(message,"Consultando o Intervals.icu...");
+      try {
+        const data=await apiRequest("/api/fitness-fatigue",{method:"GET"});
+        if(!data||data.error||!Array.isArray(data.points)||!data.points.length) throw new Error(data?.message||"Sem dados de CTL/ATL disponíveis.");
+        const points=data.points.slice(-90), latest=points[points.length-1];
+        $("#pmcCtl").textContent=Number(latest.fitness).toFixed(1); $("#pmcAtl").textContent=Number(latest.fatigue).toFixed(1); $("#pmcTsb").textContent=Number(latest.form).toFixed(1);
+        const w=640,h=190,p=24,vals=points.flatMap(x=>[Number(x.fitness),Number(x.fatigue),Number(x.form)]),min=Math.min(0,...vals),max=Math.max(1,...vals),x=i=>p+i/Math.max(1,points.length-1)*(w-2*p),y=v=>h-p-(v-min)/(max-min)*(h-2*p),ns="http://www.w3.org/2000/svg";
+        const svg=document.createElementNS(ns,"svg");svg.setAttribute("viewBox","0 0 "+w+" "+h);
+        [["fitness","#0ea5e9"],["fatigue","#f59e0b"],["form","#22c55e"]].forEach(([key,color])=>{const path=document.createElementNS(ns,"path");path.setAttribute("fill","none");path.setAttribute("stroke",color);path.setAttribute("stroke-width","2.5");path.setAttribute("stroke-linecap","round");path.setAttribute("d",points.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+","+y(Number(v[key])).toFixed(1)).join(" "));svg.append(path);});
+        chart.replaceChildren(svg);setMessage(message,"Dados atualizados pelo Intervals.icu · "+points.length+" dias","success");
+      } catch(error) { chart.replaceChildren();setMessage(message,"Gráfico PMC indisponível: "+error.message,"warning"); }
+    }
+    $("#refreshPmcButton").addEventListener("click",loadPmc);
+
     async function loadFourWeekSummary() {
       const message = $("#fourWeekSummaryMessage");
       const chart = $("#fourWeekSummaryChart");
-      setMessage(message, "Buscando atividades na Garmin...");
+      toggleSkeleton("fourWeekSkeleton", true);
+      setMessage(message);
       try {
         const data = await apiRequest("/api/weekly-summary", { method: "GET" });
         if (!data || data.error || !Array.isArray(data.weeks)) throw new Error(data?.message || "Não foi possível carregar as quatro semanas.");
@@ -2433,10 +2487,15 @@
       } catch (error) {
         chart.replaceChildren();
         setMessage(message, "Resumo das quatro semanas indisponível: " + error.message, "warning");
-      }
+      } finally { toggleSkeleton("fourWeekSkeleton", false); }
     }
 
     $("#refreshFourWeekSummaryButton").addEventListener("click", loadFourWeekSummary);
+
+    const mobileNav=$("#mobileBottomNav");
+    function syncMobileNavigation(){ if(mobileNav) mobileNav.hidden=$("#dashboardSection").hidden; }
+    mobileNav.addEventListener("click",event=>{const link=event.target.closest("a[data-nav]");if(!link)return;mobileNav.querySelectorAll("a").forEach(a=>a.classList.toggle("active",a===link));});
+    document.querySelectorAll("[data-nav-section]").forEach(section=>section.addEventListener("click",()=>{const key=section.dataset.navSection;mobileNav.querySelectorAll("a").forEach(a=>a.classList.toggle("active",a.dataset.nav===key));}));
 
     // O modo noturno é o padrão. A preferência escolhida fica salva neste navegador.
     const themeToggle = $("#themeToggle");
@@ -2461,9 +2520,11 @@
     $("#loginSection").hidden = true;
     $("#logoutButton").hidden = true;
     showDashboard({ name: "Ciclista" });
+    syncMobileNavigation();
     loadReports();
     loadWeeklyStats();
     loadFourWeekSummary();
+    loadPmc();
 
     $("#logoutButton").addEventListener("click", () => {
       // Não há sessão de usuário para encerrar no modo público.
