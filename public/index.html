@@ -601,7 +601,7 @@
     .daily-metric span { display:block; color:var(--muted); font-size:11px; }
     .daily-metric strong { display:block; margin-top:3px; color:var(--navy); font-size:19px; overflow-wrap:anywhere; }
     .daily-activity-select { width:100%; min-height:42px; padding:9px 11px; margin-top:10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
-    @media(max-width:700px) { .mobile-bottom-nav { grid-template-columns:repeat(6,minmax(0,1fr)); } .mobile-bottom-nav a { min-width:0; font-size:17px; } .mobile-bottom-nav a small { font-size:8px; white-space:nowrap; letter-spacing:-.2px; } }\n    @media(max-width:370px) { .mobile-bottom-nav { grid-template-columns:repeat(5,minmax(0,1fr)); } .mobile-bottom-nav a:first-child { display:none; } }
+    @media(max-width:700px) { .mobile-bottom-nav { grid-template-columns:repeat(5,minmax(0,1fr)); } .mobile-bottom-nav a { min-width:0; font-size:17px; } .mobile-bottom-nav a small { font-size:8px; white-space:nowrap; letter-spacing:-.2px; } }\n    @media(max-width:370px) { .mobile-bottom-nav { grid-template-columns:repeat(5,minmax(0,1fr)); } .mobile-bottom-nav a:first-child { display:none; } }
 
     .four-week-legend { display:flex; flex-wrap:wrap; gap:16px; margin:14px 0 8px; color:var(--muted); font-size:12px; }
     .four-week-legend span { display:flex; align-items:center; gap:6px; }
@@ -1190,7 +1190,7 @@
           <section class="card" id="lastRideAnalysisCard" data-nav-section="analyze">
             <div class="card-heading">
               <div>
-                <h2>Analisar meu último pedal</h2>
+                <h2>🔍 Analisar meu último pedal</h2>
                 <p>Busque seu treino mais recente no Intervals.icu e receba uma avaliação da IA.</p>
               </div></div>
             <div class="notice info">
@@ -1208,7 +1208,7 @@
           <section class="card" id="workoutSection" data-nav-section="workout">
             <div class="card-heading">
               <div>
-                <h2>Gerar meu treino</h2>
+                <h2>🚴 Gerar meu treino</h2>
                 <p>Personalize a sessão de acordo com seu momento.</p>
               </div>
             </div>
@@ -1398,7 +1398,7 @@
         <aside class="side-column">
           <!-- ESTATÍSTICAS DIÁRIAS E CALENDÁRIO GARMIN -->
           <section class="card daily-stats-card" id="dailyStatsSection" data-nav-section="stats" aria-labelledby="dailyStatsTitle">
-            <div class="card-heading"><div><h2 id="dailyStatsTitle">Estatística do dia</h2><p id="dailyStatsSubtitle">Histórico Garmin Connect desde 01/11/2026</p></div><button id="refreshDailyStatsButton" class="btn btn-outline" type="button">↻</button></div>
+            <div class="card-heading"><div><h2 id="dailyStatsTitle">📊 Estatística do dia</h2><p id="dailyStatsSubtitle">Histórico Garmin Connect desde 01/11/2026</p></div><button id="refreshDailyStatsButton" class="btn btn-outline" type="button">↻</button></div>
             <div id="dailyStatsMessage" class="notice" role="status" aria-live="polite">Buscando atividades na Garmin Connect...</div>
             <div class="stats-toolbar"><button id="statsPrevMonth" class="btn btn-outline" type="button" aria-label="Mês anterior">‹</button><strong id="statsMonthLabel" class="stats-month">—</strong><button id="statsNextMonth" class="btn btn-outline" type="button" aria-label="Próximo mês">›</button></div>
             <div class="stats-calendar" id="statsCalendar" aria-label="Calendário de atividades">
@@ -1409,7 +1409,7 @@
 
           <!-- RESUMO SEMANAL DE TREINO -->
           <section class="card" id="weeklySummarySection" data-nav-section="week" aria-labelledby="weeklyStatsTitle">
-            <div class="card-heading"><div><h2 id="weeklyStatsTitle">Resumo semanal</h2><p id="weeklyStatsPeriod">Carga acumulada desde segunda-feira</p></div></div>
+            <div class="card-heading"><div><h2 id="weeklyStatsTitle">📅 Resumo semanal</h2><p id="weeklyStatsPeriod">Carga acumulada desde segunda-feira</p></div></div>
             <div id="weeklyStatsMessage" class="notice" role="status" aria-live="polite"></div><div id="weeklyStatsSkeleton" class="skeleton-stack compact" hidden aria-hidden="true"><span></span><span></span></div>
             <div class="weekly-stats-grid">
               <div class="weekly-stat"><span>TSS semanal</span><strong id="weeklyTss">—</strong></div>
@@ -1436,7 +1436,7 @@
       </div>
           </section>
           <section class="card pmc-card" id="pmcSection" data-nav-section="performance">
-            <div class="card-heading"><div><h2>Gestão da Performance</h2><p>Condicionamento (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
+            <div class="card-heading"><div><h2>📈 Gestão da Performance</h2><p>Condicionamento (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
             <div id="pmcMessage" class="notice" role="status" aria-live="polite">Carregando carga de treino...</div>
             <div id="pmcMetrics" class="pmc-metrics"><div><span>Condicionamento · CTL</span><strong id="pmcCtl">—</strong></div><div><span>Fadiga · ATL</span><strong id="pmcAtl">—</strong></div><div><span>Forma · TSB</span><div class="pmc-tsb-line"><strong id="pmcTsb">—</strong><span id="pmcTsbStatus" class="pmc-tsb-status balanced" aria-live="polite">Aguardando dados</span></div></div></div>
             <div id="pmcInsight" class="pmc-insight" role="status" aria-live="polite">A interpretação da sua evolução aparecerá aqui quando os dados forem carregados.</div>
@@ -1453,7 +1453,7 @@
           <!-- CONVERSA COM O COACH IA -->
           <section class="card" id="coachAiSection" data-nav-section="coach" aria-labelledby="coachAiTitle">
             <div class="card-heading">
-              <div><h2 id="coachAiTitle">Coach IA · Gemini</h2></div>
+              <div><h2 id="coachAiTitle">🧠 Coach IA · Gemini</h2></div>
               <span class="section-number" aria-hidden="true">🧠</span>
             </div>
             <div class="coach-chat">
@@ -1470,7 +1470,7 @@
       <strong>Treino Lab</strong> · Treine com propósito. Evolua com consistência.
     </footer>
   </main>
-  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#dailyStatsSection" data-nav="stats" aria-label="Estatísticas do dia"><span aria-hidden="true">📊</span><small>Estatísticas</small></a><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a><a href="#lastRideAnalysisCard" data-nav="analyze" aria-label="Analisar meu último pedal"><span aria-hidden="true">🔍</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#coachAiSection" data-nav="coach" aria-label="Conversar com o Coach IA"><span aria-hidden="true">🧠</span><small>Coach IA</small></a></nav>
+  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a><a href="#lastRideAnalysisCard" data-nav="analyze" aria-label="Analisar meu último pedal"><span aria-hidden="true">🔍</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#coachAiSection" data-nav="coach" aria-label="Conversar com o Coach IA"><span aria-hidden="true">🧠</span><small>Coach IA</small></a></nav>
 
   <script>
     "use strict";
