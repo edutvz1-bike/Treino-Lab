@@ -601,7 +601,7 @@
     .daily-metric span { display:block; color:var(--muted); font-size:11px; }
     .daily-metric strong { display:block; margin-top:3px; color:var(--navy); font-size:19px; overflow-wrap:anywhere; }
     .daily-activity-select { width:100%; min-height:42px; padding:9px 11px; margin-top:10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
-    @media(max-width:700px) { .mobile-bottom-nav { grid-template-columns:repeat(6,minmax(0,1fr)); } .mobile-bottom-nav a { font-size:18px; } .mobile-bottom-nav a small { font-size:9px; } }
+    @media(max-width:700px) { .mobile-bottom-nav { grid-template-columns:repeat(5,minmax(0,1fr)); } .mobile-bottom-nav a { font-size:18px; } .mobile-bottom-nav a small { font-size:9px; } }
 
     .four-week-legend { display:flex; flex-wrap:wrap; gap:16px; margin:14px 0 8px; color:var(--muted); font-size:12px; }
     .four-week-legend span { display:flex; align-items:center; gap:6px; }
@@ -971,9 +971,8 @@
     #workoutBars .workout-bar:hover { filter:brightness(.9); }
     .workout-bar-detail { min-height:42px; margin-top:12px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--soft-blue); color:var(--ink); font-size:12px; line-height:1.45; }
     .workout-bar-detail:empty { display:none; }
-    /* Coach IA: interface mais leve e com separação clara dos relatórios. */
+    /* Coach IA: interface mais leve. */
     #coachAiSection { margin:24px 0 0; }
-    #reportsSection { margin:26px 0 0; }
     #coachAiSection .card-heading { margin-bottom:14px; }
     #coachAiSection .section-number { display:none; }
     .coach-chat { display:grid; gap:10px; }
@@ -991,7 +990,7 @@
     .coach-chat-form .btn { min-height:44px; padding:10px 15px; }
     .coach-chat-status { min-height:0; color:var(--muted); font-size:11px; }
     .coach-chat-status:empty { display:none; }
-    @media(max-width:520px) { #coachAiSection,#reportsSection { margin-top:20px; } .coach-chat-log { max-height:48vh; min-height:120px; padding:10px 0; } .coach-chat-form { grid-template-columns:minmax(0,1fr) auto; gap:7px; } .coach-chat-form .btn { padding:10px 12px; } }
+    @media(max-width:520px) { #coachAiSection { margin-top:20px; } .coach-chat-log { max-height:48vh; min-height:120px; padding:10px 0; } .coach-chat-form { grid-template-columns:minmax(0,1fr) auto; gap:7px; } .coach-chat-form .btn { padding:10px 12px; } }
     .mobile-bottom-nav { display:none; }
     @media(max-width:700px) { .feature-grid { grid-template-columns:1fr; } .landing-intro { padding:20px; } .mobile-bottom-nav { position:fixed; z-index:1000; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:2px; padding:8px 8px calc(8px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--card); box-shadow:0 -8px 24px rgba(0,0,0,.12); } .mobile-bottom-nav[hidden] { display:none; } .mobile-bottom-nav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:48px; color:var(--muted); text-decoration:none; font-size:20px; } .mobile-bottom-nav a small { font-size:10px; font-weight:700; } .mobile-bottom-nav a.active { color:var(--blue); } body { padding-bottom:calc(88px + env(safe-area-inset-bottom)); } .pmc-metrics { gap:6px; } .pmc-metrics>div { padding:9px; } .pmc-metrics strong { font-size:18px; } }
   </style>
@@ -1463,29 +1462,6 @@
               <div id="coachChatStatus" class="coach-chat-status" role="status" aria-live="polite"></div>
             </div>
           </section>
-          <!-- RELATÓRIOS -->
-          <section class="card" id="reportsSection" data-nav-section="reports">
-            <div class="card-heading">
-              <div>
-                <h2>Meus relatórios</h2>
-                <p>Consulte as informações disponíveis na sua conta.</p>
-              </div>
-            </div>
-
-            <div id="reportsMessage" class="notice" role="status" aria-live="polite"></div>
-
-            <div id="reportsList" class="report-list">
-              <div class="empty-state">
-                Seus relatórios aparecerão aqui após o carregamento.
-              </div>
-            </div>
-
-            <div class="actions">
-              <button id="refreshReportsButton" class="btn btn-outline btn-block" type="button">
-                Atualizar relatórios
-              </button>
-            </div>
-          </section>
 
 
     </section>
@@ -1494,7 +1470,7 @@
       <strong>Treino Lab</strong> · Treine com propósito. Evolua com consistência.
     </footer>
   </main>
-  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#lastRideAnalysisCard" data-nav="analyze" aria-label="Analisar meu último pedal"><span aria-hidden="true">🔍</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#coachAiSection" data-nav="coach" aria-label="Conversar com o Coach IA"><span aria-hidden="true">🧠</span><small>Coach IA</small></a><a href="#dailyStatsSection" data-nav="stats" aria-label="Estatísticas diárias"><span aria-hidden="true">📊</span><small>Estatísticas</small></a><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a></nav>
+  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#coachAiSection" data-nav="coach" aria-label="Conversar com o Coach IA"><span aria-hidden="true">🧠</span><small>Coach IA</small></a><a href="#dailyStatsSection" data-nav="stats" aria-label="Estatísticas diárias"><span aria-hidden="true">📊</span><small>Estatísticas</small></a><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a></nav>
 
   <script>
     "use strict";
@@ -1694,7 +1670,7 @@
 
       showDashboard(user);
       syncMobileNavigation();
-      await Promise.all([loadReports(), loadWeeklyStats(), loadFourWeekSummary(), loadPmc()]);
+      await Promise.all([loadWeeklyStats(), loadFourWeekSummary(), loadPmc()]);
 
       return data;
     }
@@ -2840,7 +2816,6 @@
     $("#logoutButton").hidden = true;
     showDashboard({ name: "Ciclista" });
     syncMobileNavigation();
-    loadReports();
     loadWeeklyStats();
     loadDailyStats();
     loadFourWeekSummary();
