@@ -30,6 +30,7 @@ function normalizeActivity(activity) {
     avgHr: metric(activity, ["averageHR", "averageHeartRate", "avgHeartRate"]),
     maxHr: metric(activity, ["maxHR", "maximumHeartRate", "maxHeartRate"]),
     avgPower: metric(activity, ["averagePower", "avgPower"]),
+    normalizedPower: metric(activity, ["normalizedPower", "normPower", "normalisedPower", "normalized_power"]),
     maxPower: metric(activity, ["maxPower", "maximumPower"]),
     calories: metric(activity, ["calories", "totalCalories"]),
     trainingLoad: metric(activity, ["trainingStressScore", "trainingLoad", "tss"])
