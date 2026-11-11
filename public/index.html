@@ -1514,7 +1514,7 @@
         const section = document.getElementById(id);
         if (section) main.appendChild(section);
       });
-      if (side) side.hidden = true;
+      if (side) { side.hidden = true; side.style.display = "none"; }
     })();
 
     const state = {
