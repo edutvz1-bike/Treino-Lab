@@ -937,6 +937,7 @@
     .app-header { padding-top: env(safe-area-inset-top); }
     .landing-intro { margin:0 0 24px; padding:26px; border-radius:18px; color:#fff; background:linear-gradient(125deg,#101b35,#1c4770); }
     .landing-intro h1 { margin:0; font-size:clamp(26px,4vw,38px); line-height:1.12; }
+    .dashboard-intro { padding:34px; }
     .landing-copy { color:#d5e6f7; margin:10px 0 20px; }
     .feature-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
     .feature-card { padding:16px; border:1px solid rgba(255,255,255,.2); border-radius:14px; background:rgba(255,255,255,.08); }
@@ -984,12 +985,12 @@
     .coach-chat-suggestions button { min-height:30px; padding:6px 10px; border:1px solid var(--line); border-radius:8px; color:var(--muted); background:transparent; font-size:11px; font-weight:650; }
     .coach-chat-suggestions button:hover { color:var(--blue); border-color:var(--blue); background:var(--soft-blue); }
     .coach-chat-form { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:8px; }
-    .coach-chat-form textarea { width:100%; min-height:44px; max-height:120px; resize:vertical; padding:10px 12px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:var(--card); font:inherit; font-size:16px; }
+    .coach-chat-form textarea { width:100%; min-height:132px; max-height:300px; resize:vertical; padding:10px 12px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:var(--card); font:inherit; font-size:16px; }
     .coach-chat-form textarea:focus { outline:2px solid var(--blue); outline-offset:1px; }
     .coach-chat-form .btn { min-height:44px; padding:10px 15px; }
     .coach-chat-status { min-height:0; color:var(--muted); font-size:11px; }
     .coach-chat-status:empty { display:none; }
-    @media(max-width:520px) { #coachAiSection { margin-top:20px; } .coach-chat-log { max-height:48vh; min-height:120px; padding:10px 0; } .coach-chat-form { grid-template-columns:minmax(0,1fr) auto; gap:7px; } .coach-chat-form .btn { padding:10px 12px; } }
+    @media(max-width:520px) { .dashboard-intro { padding:28px 20px; } #coachAiSection { margin-top:20px; } .coach-chat-log { max-height:48vh; min-height:120px; padding:10px 0; } .coach-chat-form { grid-template-columns:minmax(0,1fr) auto; gap:7px; } .coach-chat-form .btn { padding:10px 12px; } }
     .mobile-bottom-nav { display:none; }
     @media(max-width:700px) { .feature-grid { grid-template-columns:1fr; } .landing-intro { padding:20px; } .mobile-bottom-nav { position:fixed; z-index:1000; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:2px; padding:8px 8px calc(8px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--card); box-shadow:0 -8px 24px rgba(0,0,0,.12); } .mobile-bottom-nav[hidden] { display:none; } .mobile-bottom-nav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:48px; color:var(--muted); text-decoration:none; font-size:20px; } .mobile-bottom-nav a small { font-size:10px; font-weight:700; } .mobile-bottom-nav a.active { color:var(--blue); } body { padding-bottom:calc(88px + env(safe-area-inset-bottom)); } .pmc-metrics { gap:6px; } .pmc-metrics>div { padding:9px; } .pmc-metrics strong { font-size:18px; } }
   </style>
@@ -1020,7 +1021,7 @@
 
     <!-- ACESSO -->
     <section id="loginSection" class="card">
-      <div class="landing-intro"><p class="eyebrow">TREINO INTELIGENTE PARA CICLISTAS</p><h1>Entenda sua evolução. Treine com propósito.</h1><p class="landing-copy">Dados de treino, inteligência artificial e sessões estruturadas em um só lugar.</p><div class="feature-grid"><article class="feature-card"><span class="feature-icon">↗</span><h3>Intervals.icu</h3><p>Conecte seus dados e acompanhe sua carga de treino.</p></article><article class="feature-card"><span class="feature-icon">✦</span><h3>Análise com IA</h3><p>Transforme seus pedais em informações práticas.</p></article><article class="feature-card"><span class="feature-icon">⚡</span><h3>Treinos estruturados</h3><p>Gere sessões alinhadas ao seu objetivo e recuperação.</p></article></div></div>
+      <div class="landing-intro"><p class="eyebrow">TREINO INTELIGENTE PARA CICLISTAS</p><h1>Entenda sua evolução. Treine com propósito.</h1><p class="landing-copy">Dados de treino, inteligência artificial e sessões estruturadas em um só lugar.</p><div class="feature-grid"><article class="feature-card"><span class="feature-icon">📈</span><h3>Intervals.icu</h3><p>Conecte seus dados e acompanhe sua carga de treino.</p></article><article class="feature-card"><span class="feature-icon">🤖</span><h3>Análise com IA</h3><p>Transforme seus pedais em informações práticas.</p></article><article class="feature-card"><span class="feature-icon">🚴</span><h3>Treinos estruturados</h3><p>Gere sessões alinhadas ao seu objetivo e recuperação.</p></article></div></div>
       <div class="card-heading">
         <div>
           <h2>Acesse sua conta</h2>
@@ -1169,7 +1170,7 @@
 
     <!-- ÁREA AUTENTICADA -->
     <section id="dashboardSection" hidden>
-      <div class="landing-intro dashboard-intro"><p class="eyebrow">TREINO INTELIGENTE PARA CICLISTAS</p><h1>Bem-vindo ao Treino Lab</h1><p class="landing-copy">Sua evolução conectada a dados, inteligência artificial e treinos estruturados.</p><div class="feature-grid"><article class="feature-card"><span class="feature-icon">↗</span><h3>Intervals.icu</h3><p>Dados de carga, evolução e forma.</p></article><article class="feature-card"><span class="feature-icon">✦</span><h3>Análise com IA</h3><p>Insights objetivos sobre seus pedais.</p></article><article class="feature-card"><span class="feature-icon">⚡</span><h3>Treinos estruturados</h3><p>Sessões adaptadas ao seu objetivo.</p></article></div></div>
+      <div class="landing-intro dashboard-intro"><h1>Bem-vindo ao Treino Lab</h1><p class="landing-copy">Sua evolução conectada a dados, inteligência artificial e treinos estruturados.</p><div class="feature-grid"><article class="feature-card"><span class="feature-icon">↗</span><h3>Intervals.icu</h3><p>Dados de carga, evolução e forma.</p></article><article class="feature-card"><span class="feature-icon">✦</span><h3>Análise com IA</h3><p>Insights objetivos sobre seus pedais.</p></article><article class="feature-card"><span class="feature-icon">⚡</span><h3>Treinos estruturados</h3><p>Sessões adaptadas ao seu objetivo.</p></article></div></div>
       
       <div class="profile-summary" id="dashboardHome">
         
@@ -1397,8 +1398,8 @@
         <aside class="side-column">
           <!-- ESTATÍSTICAS DIÁRIAS E CALENDÁRIO GARMIN -->
           <section class="card daily-stats-card" id="dailyStatsSection" data-nav-section="stats" aria-labelledby="dailyStatsTitle">
-            <div class="card-heading"><div><h2 id="dailyStatsTitle">📊 Estatística do dia</h2><p id="dailyStatsSubtitle">Histórico Garmin Connect desde 01/11/2026</p></div><button id="refreshDailyStatsButton" class="btn btn-outline" type="button">↻</button></div>
-            <div id="dailyStatsMessage" class="notice" role="status" aria-live="polite">Buscando atividades na Garmin Connect...</div>
+            <div class="card-heading"><div><h2 id="dailyStatsTitle">📊 Estatística do dia</h2><p id="dailyStatsSubtitle">Histórico mensal</p></div><button id="refreshDailyStatsButton" class="btn btn-outline" type="button">↻</button></div>
+            <div id="dailyStatsMessage" class="notice" role="status" aria-live="polite" hidden></div>
             <div class="stats-toolbar"><button id="statsPrevMonth" class="btn btn-outline" type="button" aria-label="Mês anterior">‹</button><strong id="statsMonthLabel" class="stats-month">—</strong><button id="statsNextMonth" class="btn btn-outline" type="button" aria-label="Próximo mês">›</button></div>
             <div class="stats-calendar" id="statsCalendar" aria-label="Calendário de atividades">
               <span class="stats-calendar-head">D</span><span class="stats-calendar-head">S</span><span class="stats-calendar-head">T</span><span class="stats-calendar-head">Q</span><span class="stats-calendar-head">Q</span><span class="stats-calendar-head">S</span><span class="stats-calendar-head">S</span>
@@ -1413,7 +1414,7 @@
             <div class="weekly-stats-grid">
               <div class="weekly-stat"><span>TSS semanal</span><strong id="weeklyTss">—</strong></div>
               <div class="weekly-stat"><span>Distância</span><strong id="weeklyDistance">—</strong></div>
-              <div class="weekly-stat"><span>Horas de treino</span><strong id="weeklyHours">—</strong></div>
+              <div class="weekly-stat"><span>Horas e minutos</span><strong id="weeklyHours">—</strong></div>
               <div class="weekly-stat"><span>Sessões</span><strong id="weeklySessions">—</strong></div>
             </div>
       <div class="four-week-embedded" id="fourWeekSummaryCard">
@@ -1457,7 +1458,7 @@
             </div>
             <div class="coach-chat">
               <div id="coachChatLog" class="coach-chat-log" role="log" aria-live="polite" aria-relevant="additions"><div class="coach-message assistant">Olá! 👋 Sou o Coach IA do Treino Lab, conectado ao Gemini. Como posso ajudar na sua evolução como ciclista?</div></div>
-              <form id="coachChatForm" class="coach-chat-form"><textarea id="coachChatInput" rows="1" maxlength="4000" placeholder="Escreva sua pergunta para o Coach IA..." aria-label="Mensagem para o Coach IA" required></textarea><button id="coachChatSend" class="btn btn-primary" type="submit">Enviar</button></form>
+              <form id="coachChatForm" class="coach-chat-form"><textarea id="coachChatInput" rows="4" maxlength="4000" placeholder="Escreva sua pergunta para o Coach IA..." aria-label="Mensagem para o Coach IA" required></textarea><button id="coachChatSend" class="btn btn-primary" type="submit">Enviar</button></form>
               <div id="coachChatStatus" class="coach-chat-status" role="status" aria-live="polite"></div>
             </div>
           </section>
@@ -1703,6 +1704,14 @@
     let selectedStatsDate = new Date().toISOString().slice(0,10);
     let visibleStatsMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
+    function selectLatestRide() {
+      dailyActivities.sort((a,b) => String(b.date||"").localeCompare(String(a.date||"")) || String(b.id||"").localeCompare(String(a.id||""), "en", { numeric:true }));
+      if (dailyActivities.length && dailyActivities[0].date) {
+        selectedStatsDate = dailyActivities[0].date;
+        visibleStatsMonth = new Date(Number(selectedStatsDate.slice(0,4)), Number(selectedStatsDate.slice(5,7))-1, 1);
+      }
+    }
+
     function readDailyStatsCache() {
       try {
         const cached = JSON.parse(localStorage.getItem(DAILY_STATS_CACHE_KEY) || "[]");
@@ -1783,22 +1792,22 @@
         button.addEventListener("click",()=>{selectedStatsDate=dateKey;renderStatsCalendar();renderDailyActivity(dateKey);});
         calendar.append(button);
       }
-      $("#dailyStatsSubtitle").textContent="Histórico Garmin Connect desde 01/11/2026 · "+dailyActivities.length+" pedais";
+      const trainedDays = new Set(dailyActivities.filter(a => a.date && a.date.startsWith(year+"-"+String(month+1).padStart(2,"0")+"-")).map(a => a.date)).size;
+      $("#dailyStatsSubtitle").textContent="Histórico mensal · "+trainedDays+" "+(trainedDays===1?"dia treinado":"dias treinados")+" no mês";
     }
     async function loadDailyStats(force=false) {
       const button=$("#refreshDailyStatsButton"),message=$("#dailyStatsMessage");
       if(force)setLoading(button,true,"Buscando...");
       const cached=readDailyStatsCache();
-      if(cached.length){dailyActivities=cached;renderStatsCalendar();renderDailyActivity(selectedStatsDate);}
+      if(cached.length){dailyActivities=cached;selectLatestRide();renderStatsCalendar();renderDailyActivity(selectedStatsDate);}
       try {
         const data=await apiRequest("/api/garmin-activities?startDate="+encodeURIComponent(GARMIN_HISTORY_START),{method:"GET"});
         if(!data||data.error||!Array.isArray(data.activities))throw new Error(data?.message||"A Garmin retornou uma resposta inesperada.");
         dailyActivities=data.activities;
+        selectLatestRide();
         saveDailyStatsCache(dailyActivities);
-        if(!dailyActivities.some(a=>a.date===selectedStatsDate))selectedStatsDate=dailyActivities[0]?.date||new Date().toISOString().slice(0,10);
-        visibleStatsMonth=new Date(Number(selectedStatsDate.slice(0,4)),Number(selectedStatsDate.slice(5,7))-1,1);
         renderStatsCalendar();renderDailyActivity(selectedStatsDate);
-        setMessage(message,data.activities.length+" pedais importados da Garmin desde 01/11/2026.","success");
+        setMessage(message);
       } catch(error) {
         setMessage(message,cached.length?"Não foi possível atualizar a Garmin. Exibindo o histórico salvo neste dispositivo.": "Não foi possível importar as atividades: "+error.message,"warning");
       } finally {if(force)setLoading(button,false);}
@@ -1816,7 +1825,14 @@
         if (!data || data.error) throw new Error(data?.message || "Não foi possível carregar o resumo semanal.");
         $("#weeklyTss").textContent = data.tss == null ? "—" : `${Math.round(data.tss)} TSS`;
         $("#weeklyDistance").textContent = data.distanceKm == null ? "—" : `${data.distanceKm.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
-        $("#weeklyHours").textContent = data.hours == null ? "—" : `${data.hours.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} h`;
+        if (data.hours == null) {
+          $("#weeklyHours").textContent = "—";
+        } else {
+          const totalMinutes = Math.round(Number(data.hours) * 60);
+          const hours = Math.floor(totalMinutes / 60);
+          const minutes = totalMinutes % 60;
+          $("#weeklyHours").textContent = hours ? hours + "h" + String(minutes).padStart(2,"0") + "min" : minutes + "min";
+        }
         $("#weeklySessions").textContent = data.sessions ?? "—";
         $("#weeklyStatsPeriod").textContent = data.periodLabel || "Carga acumulada desde segunda-feira";
         if (data.message) {
