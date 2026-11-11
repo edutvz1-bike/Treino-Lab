@@ -601,7 +601,7 @@
     .daily-metric span { display:block; color:var(--muted); font-size:11px; }
     .daily-metric strong { display:block; margin-top:3px; color:var(--navy); font-size:19px; overflow-wrap:anywhere; }
     .daily-activity-select { width:100%; min-height:42px; padding:9px 11px; margin-top:10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
-    @media(max-width:700px) { .mobile-bottom-nav { grid-template-columns:repeat(5,minmax(0,1fr)); } .mobile-bottom-nav a { font-size:18px; } .mobile-bottom-nav a small { font-size:9px; } }
+    @media(max-width:700px) { .mobile-bottom-nav { grid-template-columns:repeat(6,minmax(0,1fr)); } .mobile-bottom-nav a { min-width:0; font-size:17px; } .mobile-bottom-nav a small { font-size:8px; white-space:nowrap; letter-spacing:-.2px; } }\n    @media(max-width:370px) { .mobile-bottom-nav { grid-template-columns:repeat(5,minmax(0,1fr)); } .mobile-bottom-nav a:first-child { display:none; } }
 
     .four-week-legend { display:flex; flex-wrap:wrap; gap:16px; margin:14px 0 8px; color:var(--muted); font-size:12px; }
     .four-week-legend span { display:flex; align-items:center; gap:6px; }
@@ -1470,7 +1470,7 @@
       <strong>Treino Lab</strong> · Treine com propósito. Evolua com consistência.
     </footer>
   </main>
-  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#coachAiSection" data-nav="coach" aria-label="Conversar com o Coach IA"><span aria-hidden="true">🧠</span><small>Coach IA</small></a><a href="#dailyStatsSection" data-nav="stats" aria-label="Estatísticas diárias"><span aria-hidden="true">📊</span><small>Estatísticas</small></a><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a></nav>
+  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#dailyStatsSection" data-nav="stats" aria-label="Estatísticas do dia"><span aria-hidden="true">📊</span><small>Estatísticas</small></a><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a><a href="#lastRideAnalysisCard" data-nav="analyze" aria-label="Analisar meu último pedal"><span aria-hidden="true">🔍</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#coachAiSection" data-nav="coach" aria-label="Conversar com o Coach IA"><span aria-hidden="true">🧠</span><small>Coach IA</small></a></nav>
 
   <script>
     "use strict";
@@ -1494,6 +1494,28 @@
     });
 
     const $ = (selector) => document.querySelector(selector);
+
+    // Mantém os seis quadros na mesma sequência no desktop e no celular.
+    (() => {
+      const main = document.querySelector(".main-column");
+      const side = document.querySelector(".side-column");
+      const orderedIds = [
+        "dailyStatsSection",
+        "weeklySummarySection",
+        "pmcSection",
+        "lastRideAnalysisCard",
+        "workoutSection",
+        "workoutResultSection",
+        "reportSection",
+        "coachAiSection"
+      ];
+      if (!main) return;
+      orderedIds.forEach(id => {
+        const section = document.getElementById(id);
+        if (section) main.appendChild(section);
+      });
+      if (side) side.hidden = true;
+    })();
 
     const state = {
       user: null,
