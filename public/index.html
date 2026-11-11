@@ -585,6 +585,23 @@
     .weekly-stat { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft-blue); }
     .weekly-stat span { display: block; color: var(--muted); font-size: 12px; }
     .weekly-stat strong { display: block; margin-top: 4px; color: var(--navy); font-size: 22px; line-height: 1.25; }
+    .daily-stats-card { margin-bottom:22px; }
+    .stats-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 0; }
+    .stats-month { font-weight:800; color:var(--navy); text-transform:capitalize; }
+    .stats-calendar { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; }
+    .stats-calendar-head,.stats-day { min-width:0; text-align:center; font-size:11px; }
+    .stats-calendar-head { color:var(--muted); font-weight:800; padding:5px 0; }
+    .stats-day { min-height:38px; padding:5px 2px; border:1px solid transparent; border-radius:9px; background:var(--bg); color:var(--ink); }
+    .stats-day.has-ride { background:var(--soft-blue); border-color:#b8dff2; font-weight:800; }
+    .stats-day.selected { outline:2px solid var(--blue); outline-offset:-2px; color:var(--blue); }
+    .stats-day .ride-dot { display:block; width:5px; height:5px; margin:2px auto 0; border-radius:50%; background:var(--success); }
+    .stats-day:disabled { opacity:.3; }
+    .daily-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-top:14px; }
+    .daily-metric { padding:12px; border:1px solid var(--line); border-radius:11px; background:var(--soft-blue); min-width:0; }
+    .daily-metric span { display:block; color:var(--muted); font-size:11px; }
+    .daily-metric strong { display:block; margin-top:3px; color:var(--navy); font-size:19px; overflow-wrap:anywhere; }
+    .daily-activity-select { width:100%; min-height:42px; padding:9px 11px; margin-top:10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
+    @media(max-width:700px) { .mobile-bottom-nav { grid-template-columns:repeat(6,minmax(0,1fr)); } .mobile-bottom-nav a { font-size:18px; } .mobile-bottom-nav a small { font-size:9px; } }
 
     .four-week-legend { display:flex; flex-wrap:wrap; gap:16px; margin:14px 0 8px; color:var(--muted); font-size:12px; }
     .four-week-legend span { display:flex; align-items:center; gap:6px; }
@@ -1380,6 +1397,17 @@
         </div>
 
         <aside class="side-column">
+          <!-- ESTATÍSTICAS DIÁRIAS E CALENDÁRIO GARMIN -->
+          <section class="card daily-stats-card" id="dailyStatsSection" data-nav-section="stats" aria-labelledby="dailyStatsTitle">
+            <div class="card-heading"><div><h2 id="dailyStatsTitle">Estatística do dia</h2><p id="dailyStatsSubtitle">Histórico Garmin Connect desde 01/11/2026</p></div><button id="refreshDailyStatsButton" class="btn btn-outline" type="button">↻</button></div>
+            <div id="dailyStatsMessage" class="notice" role="status" aria-live="polite">Buscando atividades na Garmin Connect...</div>
+            <div class="stats-toolbar"><button id="statsPrevMonth" class="btn btn-outline" type="button" aria-label="Mês anterior">‹</button><strong id="statsMonthLabel" class="stats-month">—</strong><button id="statsNextMonth" class="btn btn-outline" type="button" aria-label="Próximo mês">›</button></div>
+            <div class="stats-calendar" id="statsCalendar" aria-label="Calendário de atividades">
+              <span class="stats-calendar-head">D</span><span class="stats-calendar-head">S</span><span class="stats-calendar-head">T</span><span class="stats-calendar-head">Q</span><span class="stats-calendar-head">Q</span><span class="stats-calendar-head">S</span><span class="stats-calendar-head">S</span>
+            </div>
+            <div id="dailyActivityDetail" aria-live="polite"><div class="empty-state">Selecione um dia marcado para consultar o pedal.</div></div>
+          </section>
+
           <!-- RESUMO SEMANAL DE TREINO -->
           <section class="card" id="weeklySummarySection" data-nav-section="week" aria-labelledby="weeklyStatsTitle">
             <div class="card-heading"><div><h2 id="weeklyStatsTitle">Resumo semanal</h2><p id="weeklyStatsPeriod">Carga acumulada desde segunda-feira</p></div></div>
@@ -1466,7 +1494,7 @@
       <strong>Treino Lab</strong> · Treine com propósito. Evolua com consistência.
     </footer>
   </main>
-  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#lastRideAnalysisCard" data-nav="analyze" aria-label="Analisar meu último pedal"><span aria-hidden="true">🔍</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#coachAiSection" data-nav="coach" aria-label="Conversar com o Coach IA"><span aria-hidden="true">🧠</span><small>Coach IA</small></a><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a></nav>
+  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#lastRideAnalysisCard" data-nav="analyze" aria-label="Analisar meu último pedal"><span aria-hidden="true">🔍</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#coachAiSection" data-nav="coach" aria-label="Conversar com o Coach IA"><span aria-hidden="true">🧠</span><small>Coach IA</small></a><a href="#dailyStatsSection" data-nav="stats" aria-label="Estatísticas diárias"><span aria-hidden="true">📊</span><small>Estatísticas</small></a><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a></nav>
 
   <script>
     "use strict";
@@ -1670,6 +1698,117 @@
 
       return data;
     }
+
+    // Histórico diário importado automaticamente da Garmin Connect.
+    const GARMIN_HISTORY_START = "2026-11-01";
+    const DAILY_STATS_CACHE_KEY = "treinoLabGarminActivities_v1";
+    let dailyActivities = [];
+    let selectedStatsDate = new Date().toISOString().slice(0,10);
+    let visibleStatsMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+    function readDailyStatsCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(DAILY_STATS_CACHE_KEY) || "[]");
+        return Array.isArray(cached) ? cached : [];
+      } catch { return []; }
+    }
+    function saveDailyStatsCache(items) {
+      try { localStorage.setItem(DAILY_STATS_CACHE_KEY, JSON.stringify(items)); } catch {}
+    }
+    function formatMetric(value, digits=1) {
+      return value == null || !Number.isFinite(Number(value)) ? "—" : Number(value).toLocaleString("pt-BR", { maximumFractionDigits:digits });
+    }
+    function renderDailyActivity(dateKey) {
+      const host=$("#dailyActivityDetail");
+      const dayActivities=dailyActivities.filter(a=>a.date===dateKey);
+      if(!dayActivities.length) {
+        host.innerHTML='<div class="empty-state">Nenhum pedal registrado nesta data.</div>';
+        return;
+      }
+      const activity=dayActivities[0];
+      const metrics=[
+        ["Distância",activity.distanceKm==null?"—":formatMetric(activity.distanceKm)+" km"],
+        ["Duração",activity.durationSec==null?"—":formatDuration(activity.durationSec)],
+        ["Ganho de elevação",activity.elevationGainM==null?"—":formatMetric(activity.elevationGainM,0)+" m"],
+        ["Potência média",activity.avgPower==null?"—":formatMetric(activity.avgPower,0)+" W"],
+        ["FC média",activity.avgHr==null?"—":formatMetric(activity.avgHr,0)+" bpm"],
+        ["Velocidade média",activity.avgSpeedKmh==null?"—":formatMetric(activity.avgSpeedKmh)+" km/h"],
+        ["Calorias",activity.calories==null?"—":formatMetric(activity.calories,0)+" kcal"],
+        ["Carga Garmin",activity.trainingLoad==null?"—":formatMetric(activity.trainingLoad,0)]
+      ];
+      host.replaceChildren();
+      if(dayActivities.length>1) {
+        const select=document.createElement("select");select.className="daily-activity-select";select.id="dailyActivitySelect";select.setAttribute("aria-label","Selecionar pedal");
+        dayActivities.forEach((a,i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=a.name||("Pedal "+(i+1));select.append(o);});
+        select.addEventListener("change",()=>renderDailyActivityDetail(dayActivities[Number(select.value)]));
+        host.append(select);
+      }
+      const detail=document.createElement("div");detail.id="dailyActivityMetrics";detail.innerHTML="";
+      renderDailyActivityDetail(activity,detail);
+      host.append(detail);
+    }
+    function formatDuration(seconds) {
+      const n=Math.max(0,Math.round(Number(seconds)||0)),h=Math.floor(n/3600),m=Math.floor((n%3600)/60);
+      return h ? h+"h "+String(m).padStart(2,"0")+"min" : m+" min";
+    }
+    function renderDailyActivityDetail(activity,target=$("#dailyActivityMetrics")) {
+      if(!target)return;
+      target.replaceChildren();
+      const heading=document.createElement("p");heading.className="small muted";heading.textContent=activity.name||"Pedal";
+      const grid=document.createElement("div");grid.className="daily-metrics";
+      const metrics=[
+        ["Distância",activity.distanceKm==null?"—":formatMetric(activity.distanceKm)+" km"],
+        ["Duração",activity.durationSec==null?"—":formatDuration(activity.durationSec)],
+        ["Elevação",activity.elevationGainM==null?"—":formatMetric(activity.elevationGainM,0)+" m"],
+        ["Potência média",activity.avgPower==null?"—":formatMetric(activity.avgPower,0)+" W"],
+        ["FC média",activity.avgHr==null?"—":formatMetric(activity.avgHr,0)+" bpm"],
+        ["Velocidade média",activity.avgSpeedKmh==null?"—":formatMetric(activity.avgSpeedKmh)+" km/h"],
+        ["Calorias",activity.calories==null?"—":formatMetric(activity.calories,0)+" kcal"],
+        ["Carga",activity.trainingLoad==null?"—":formatMetric(activity.trainingLoad,0)]
+      ];
+      metrics.forEach(([label,value])=>{const card=document.createElement("div");card.className="daily-metric";const span=document.createElement("span");span.textContent=label;const strong=document.createElement("strong");strong.textContent=value;card.append(span,strong);grid.append(card);});
+      target.append(heading,grid);
+    }
+    function renderStatsCalendar() {
+      const calendar=$("#statsCalendar");
+      while(calendar.children.length>7)calendar.lastChild.remove();
+      const year=visibleStatsMonth.getFullYear(),month=visibleStatsMonth.getMonth();
+      $("#statsMonthLabel").textContent=visibleStatsMonth.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+      const firstDay=new Date(year,month,1).getDay(),days=new Date(year,month+1,0).getDate();
+      for(let i=0;i<firstDay;i++){const blank=document.createElement("span");calendar.append(blank);}
+      for(let day=1;day<=days;day++){
+        const dateKey=year+"-"+String(month+1).padStart(2,"0")+"-"+String(day).padStart(2,"0");
+        const rides=dailyActivities.some(a=>a.date===dateKey);
+        const button=document.createElement("button");button.type="button";button.className="stats-day"+(rides?" has-ride":"")+(selectedStatsDate===dateKey?" selected":"");button.textContent=String(day);
+        if(dateKey<GARMIN_HISTORY_START||dateKey>new Date().toISOString().slice(0,10))button.disabled=true;
+        button.setAttribute("aria-label",dateKey+(rides?", pedal registrado":""));
+        if(rides){const dot=document.createElement("span");dot.className="ride-dot";dot.setAttribute("aria-hidden","true");button.append(dot);}
+        button.addEventListener("click",()=>{selectedStatsDate=dateKey;renderStatsCalendar();renderDailyActivity(dateKey);});
+        calendar.append(button);
+      }
+      $("#dailyStatsSubtitle").textContent="Histórico Garmin Connect desde 01/11/2026 · "+dailyActivities.length+" pedais";
+    }
+    async function loadDailyStats(force=false) {
+      const button=$("#refreshDailyStatsButton"),message=$("#dailyStatsMessage");
+      if(force)setLoading(button,true,"Buscando...");
+      const cached=readDailyStatsCache();
+      if(cached.length){dailyActivities=cached;renderStatsCalendar();renderDailyActivity(selectedStatsDate);}
+      try {
+        const data=await apiRequest("/api/garmin-activities?startDate="+encodeURIComponent(GARMIN_HISTORY_START),{method:"GET"});
+        if(!data||data.error||!Array.isArray(data.activities))throw new Error(data?.message||"A Garmin retornou uma resposta inesperada.");
+        dailyActivities=data.activities;
+        saveDailyStatsCache(dailyActivities);
+        if(!dailyActivities.some(a=>a.date===selectedStatsDate))selectedStatsDate=dailyActivities[0]?.date||new Date().toISOString().slice(0,10);
+        visibleStatsMonth=new Date(Number(selectedStatsDate.slice(0,4)),Number(selectedStatsDate.slice(5,7))-1,1);
+        renderStatsCalendar();renderDailyActivity(selectedStatsDate);
+        setMessage(message,data.activities.length+" pedais importados da Garmin desde 01/11/2026.","success");
+      } catch(error) {
+        setMessage(message,cached.length?"Não foi possível atualizar a Garmin. Exibindo o histórico salvo neste dispositivo.": "Não foi possível importar as atividades: "+error.message,"warning");
+      } finally {if(force)setLoading(button,false);}
+    }
+    $("#statsPrevMonth").addEventListener("click",()=>{visibleStatsMonth.setMonth(visibleStatsMonth.getMonth()-1);renderStatsCalendar();});
+    $("#statsNextMonth").addEventListener("click",()=>{visibleStatsMonth.setMonth(visibleStatsMonth.getMonth()+1);renderStatsCalendar();});
+    $("#refreshDailyStatsButton").addEventListener("click",()=>loadDailyStats(true));
 
     async function loadWeeklyStats() {
       const message = $("#weeklyStatsMessage");
@@ -2703,6 +2842,7 @@
     syncMobileNavigation();
     loadReports();
     loadWeeklyStats();
+    loadDailyStats();
     loadFourWeekSummary();
     loadPmc();
 
