@@ -2629,18 +2629,6 @@
       });
     });
 
-    $("#refreshReportsButton").addEventListener("click", async () => {
-      const button = $("#refreshReportsButton");
-
-      setLoading(button, true, "Atualizando...");
-
-      try {
-        await Promise.all([loadReports(), loadWeeklyStats()]);
-      } finally {
-        setLoading(button, false);
-      }
-    });
-
     async function loadPmc() {
       const chart=$("#pmcChart"), message=$("#pmcMessage"); setMessage(message,"Consultando o Intervals.icu...");
       try {
