@@ -1,3 +1,5 @@
+import { garminToken, garminGet, isCycling, metric } from "../lib/garmin.js";
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -7,6 +9,122 @@ function json(data, status = 200) {
       "X-Content-Type-Options": "nosniff"
     }
   });
+}
+
+
+function localDateKey(date = new Date()) {
+  return new Date(date.getTime() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function weekStartKey(dateKey) {
+  const date = new Date(dateKey + "T12:00:00Z");
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  return date.toISOString().slice(0, 10);
+}
+
+function formatDuration(seconds) {
+  if (!Number.isFinite(seconds)) return "duração não informada";
+  const minutes = Math.round(seconds / 60);
+  return Math.floor(minutes / 60) + "h" + String(minutes % 60).padStart(2, "0") + "min";
+}
+
+async function loadTrainingContext(env) {
+  const today = localDateKey();
+  const monday = weekStartKey(today);
+  const context = { today, monday, activities: [], pmc: null, notes: [] };
+
+  if (env.GARMIN_PERSONAL_API_KEY) {
+    try {
+      const token = await garminToken(env);
+      const query = new URLSearchParams({ start: "0", limit: "100", startDate: monday, endDate: today });
+      const payload = await garminGet(token, "/activitylist-service/activities/search/activities?" + query.toString());
+      const records = Array.isArray(payload) ? payload : Array.isArray(payload?.activities) ? payload.activities : Array.isArray(payload?.data) ? payload.data : null;
+      if (!records) throw new Error("formato inesperado da lista de atividades");
+      context.activities = records.filter(isCycling).map(activity => {
+        const rawDate = activity.startTimeLocal || activity.startTimeGMT || activity.startTime || activity.date;
+        return {
+          date: rawDate ? String(rawDate).slice(0, 10) : "data não informada",
+          name: String(activity.activityName || activity.name || "Pedal"),
+          durationSec: metric(activity, ["duration", "durationInSeconds", "movingDuration", "movingDurationInSeconds", "elapsedDuration", "elapsedDurationInSeconds", "totalDurationInSeconds"]),
+          distanceKm: (() => { const n = metric(activity, ["distance", "distanceInMeters", "totalDistance", "totalDistanceInMeters"]); return n == null ? null : Math.round(n / 100) / 10; })(),
+          tss: metric(activity, ["trainingStressScore", "trainingLoad", "tss"]),
+          normalizedPower: metric(activity, ["normalizedPower", "normPower", "normalisedPower", "normalized_power"]),
+          avgPower: metric(activity, ["averagePower", "avgPower"]),
+          avgHr: metric(activity, ["averageHR", "averageHeartRate", "avgHeartRate"])
+        };
+      }).filter(activity => activity.date >= monday && activity.date <= today).sort((a, b) => a.date.localeCompare(b.date));
+      if (!context.activities.length) context.notes.push("A Garmin não retornou pedais concluídos nesta semana.");
+    } catch (error) {
+      context.notes.push("Não foi possível consultar a Garmin nesta conversa: " + (error?.message || "erro de integração") + ".");
+    }
+  } else {
+    context.notes.push("A integração Garmin não está configurada no servidor.");
+  }
+
+  if (env.INTERVALS_API_KEY) {
+    try {
+      const oldest = new Date(today + "T12:00:00Z");
+      oldest.setUTCDate(oldest.getUTCDate() - 14);
+      const url = new URL("https://intervals.icu/api/v1/athlete/0/wellness");
+      url.searchParams.set("oldest", oldest.toISOString().slice(0, 10));
+      url.searchParams.set("newest", today);
+      const response = await fetch(url, {
+        headers: { authorization: "Basic " + btoa("API_KEY:" + env.INTERVALS_API_KEY), accept: "application/json" }
+      });
+      if (!response.ok) throw new Error("Intervals.icu respondeu HTTP " + response.status);
+      const rows = await response.json();
+      if (!Array.isArray(rows)) throw new Error("formato inesperado dos dados de condicionamento");
+      const points = rows.map(row => {
+        const ctl = Number(row.ctl ?? row.ctLoad ?? row.ctlLoad);
+        const atl = Number(row.atl ?? row.atlLoad);
+        const date = row.id || row.date || row.day;
+        return date && Number.isFinite(ctl) && Number.isFinite(atl)
+          ? { date: String(date).slice(0, 10), ctl: Math.round(ctl * 10) / 10, atl: Math.round(atl * 10) / 10, tsb: Math.round((ctl - atl) * 10) / 10 }
+          : null;
+      }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date));
+      context.pmc = points.slice(-8);
+      if (!context.pmc.length) context.notes.push("O Intervals.icu não retornou CTL/ATL/TSB recentes.");
+    } catch (error) {
+      context.notes.push("Não foi possível consultar o condicionamento no Intervals.icu: " + (error?.message || "erro de integração") + ".");
+    }
+  } else {
+    context.notes.push("A integração Intervals.icu não está configurada no servidor.");
+  }
+
+  return context;
+}
+
+function trainingContextText(context) {
+  const lines = [
+    "DADOS ATUAIS DO CICLISTA — consultados automaticamente pelo servidor para esta conversa.",
+    "Data local considerada: " + context.today + ". Semana: " + context.monday + " até " + context.today + ".",
+    "PEDAIS CONCLUÍDOS NA SEMANA:"
+  ];
+  if (context.activities.length) {
+    for (const a of context.activities) {
+      const values = [
+        a.date + " — " + a.name,
+        "duração: " + formatDuration(a.durationSec),
+        a.distanceKm == null ? null : "distância: " + a.distanceKm + " km",
+        a.tss == null ? null : "TSS/carga: " + a.tss,
+        a.normalizedPower == null ? null : "NP: " + a.normalizedPower + " W",
+        a.avgPower == null ? null : "potência média: " + a.avgPower + " W",
+        a.avgHr == null ? null : "FC média: " + a.avgHr + " bpm"
+      ].filter(Boolean);
+      lines.push("- " + values.join("; "));
+    }
+  } else {
+    lines.push("- Nenhuma atividade concluída foi recebida da Garmin nesta semana.");
+  }
+  lines.push("CONDICIONAMENTO (Intervals.icu), últimos dias:");
+  if (context.pmc?.length) {
+    for (const p of context.pmc) lines.push("- " + p.date + ": CTL " + p.ctl + ", ATL " + p.atl + ", TSB " + p.tsb);
+  } else {
+    lines.push("- Dados de CTL/ATL/TSB indisponíveis.");
+  }
+  if (context.notes.length) lines.push("LIMITAÇÕES DA CONSULTA:", ...context.notes.map(note => "- " + note));
+  lines.push("Use esses dados como contexto real. Não confunda potência média com Normalized Power. Não invente campos ausentes. Os dados representam atividades concluídas, não necessariamente treinos planejados. Ao recomendar o treino de amanhã, considere a sequência e carga recente, CTL/ATL/TSB e descanso; se faltarem dados importantes (sensação de recuperação, dor, sono ou disponibilidade), pergunte ou deixe a recomendação condicional.");
+  return lines.join("\n");
 }
 
 export async function onRequestPost({ request, env }) {
@@ -35,6 +153,9 @@ export async function onRequestPost({ request, env }) {
     parts: [{ text: m.text.trim() }]
   }));
 
+  const trainingContext = await loadTrainingContext(env);
+  const athleteContext = trainingContextText(trainingContext);
+
   let response;
   try {
     response = await fetch(
@@ -48,7 +169,7 @@ export async function onRequestPost({ request, env }) {
         body: JSON.stringify({
           systemInstruction: {
             parts: [{
-              text: "Você é o Coach IA do Treino Lab, um assistente especializado em ciclismo e treinamento esportivo. Converse em português brasileiro, com tom amigável, claro, objetivo e motivador. Ajude o ciclista a compreender conceitos de treino, estruturar objetivos, interpretar métricas que ele fornecer (FTP, potência, frequência cardíaca, TSS, CTL, ATL, TSB, volume e percepção de esforço) e refletir sobre consistência e recuperação. Não invente dados do usuário nem afirme que consultou o Intervals.icu, Garmin ou histórico: só use dados explicitamente fornecidos na conversa. Quando faltarem dados, pergunte o necessário e explique limitações. Não diagnostique doenças, não prescreva medicamentos e não substitua profissionais de saúde. Para dor, tontura, dor no peito ou sintomas incomuns, oriente interromper o exercício e procurar avaliação médica adequada. Não recomende aumentos bruscos de carga. Ao sugerir treino, apresente objetivo, duração e intensidade de forma prudente, deixando claro quando for uma sugestão geral."
+              text: "Você é o Coach IA do Treino Lab, um assistente especializado em ciclismo e treinamento esportivo. Converse em português brasileiro, com tom amigável, claro, objetivo e motivador. Ajude o ciclista a compreender conceitos de treino, estruturar objetivos, interpretar métricas que ele fornecer (FTP, potência, frequência cardíaca, TSS, CTL, ATL, TSB, volume e percepção de esforço) e refletir sobre consistência e recuperação. Não invente dados do usuário nem afirme que consultou o Intervals.icu, Garmin ou histórico: só use dados explicitamente fornecidos na conversa. Quando faltarem dados, pergunte o necessário e explique limitações. Não diagnostique doenças, não prescreva medicamentos e não substitua profissionais de saúde. Para dor, tontura, dor no peito ou sintomas incomuns, oriente interromper o exercício e procurar avaliação médica adequada. Não recomende aumentos bruscos de carga. Ao sugerir treino, apresente objetivo, duração e intensidade de forma prudente, deixando claro quando for uma sugestão geral.\n\n" + athleteContext
             }]
           },
           contents,
