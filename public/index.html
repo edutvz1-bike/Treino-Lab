@@ -957,6 +957,9 @@
     .feature-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:10px; color:#fff; background:rgba(24,184,237,.25); font-size:22px; }
     .pmc-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:12px 0 18px; }
     .pmc-metrics>div { padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--soft-blue); } .pmc-metrics span { display:block; color:var(--muted); font-size:11px; } .pmc-metrics strong { display:block; margin-top:4px; font-size:22px; color:var(--ink); }
+.pmc-metrics .pmc-metric-description { display:block; margin-top:7px; color:var(--ink); font-size:13px; line-height:1.35; font-weight:600; }
+    .pmc-metrics .pmc-metric-code { display:block; margin-top:5px; color:var(--muted); font-size:10px; }
+    .pmc-metrics>div>span:first-child { letter-spacing:.08em; font-weight:700; }
     .pmc-tsb-line { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:4px; }
     .pmc-metrics .pmc-tsb-line strong { margin:0; }
     .pmc-tsb-status { display:inline-flex; align-items:center; min-height:22px; padding:3px 8px; border:1px solid transparent; border-radius:999px; font-size:10px; line-height:1.2; font-weight:800; }
@@ -1450,7 +1453,7 @@
           <section class="card pmc-card" id="pmcSection" data-nav-section="performance">
             <div class="card-heading"><div><h2>📈 Gestão da Performance</h2><p>Condicionamento (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
             <div id="pmcMessage" class="notice" role="status" aria-live="polite">Carregando carga de treino...</div>
-            <div id="pmcMetrics" class="pmc-metrics"><div><span>Condicionamento · CTL</span><strong id="pmcCtl">—</strong></div><div><span>Fadiga · ATL</span><strong id="pmcAtl">—</strong></div><div><span>Forma · TSB</span><div class="pmc-tsb-line"><strong id="pmcTsb">—</strong><span id="pmcTsbStatus" class="pmc-tsb-status balanced" aria-live="polite">Aguardando dados</span></div></div></div>
+            <div id="pmcMetrics" class="pmc-metrics"><div><span>FITNESS</span><strong id="pmcCtl">—</strong><small class="pmc-metric-description">Em construção</small><small class="pmc-metric-code">CTL · Condicionamento</small></div><div><span>FORMA</span><div class="pmc-tsb-line"><strong id="pmcTsb">—</strong></div><small class="pmc-metric-description" id="pmcFormDescription">Fresco, pronto para prova</small><small class="pmc-metric-code">TSB · Forma</small><span id="pmcTsbStatus" class="pmc-tsb-status balanced" aria-live="polite" hidden>Aguardando dados</span></div><div><span>FADIGA</span><strong id="pmcAtl">—</strong><small class="pmc-metric-description">Recuperado</small><small class="pmc-metric-code">ATL · Fadiga</small></div></div>
             <div id="pmcInsight" class="pmc-insight" role="status" aria-live="polite">A interpretação da sua evolução aparecerá aqui quando os dados forem carregados.</div>
             <div id="pmcChart" class="pmc-chart" role="img" aria-label="Gráfico de condicionamento, fadiga e forma nos últimos meses"></div><div class="four-week-legend pmc-legend"><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#0ea5e9" stroke="none"/></svg>CTL · Condicionamento</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#f59e0b" stroke="none"/></svg>ATL · Fadiga</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#22c55e" stroke="none"/></svg>TSB · Forma</span></div>
           </section>
