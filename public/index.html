@@ -1453,7 +1453,7 @@
           <section class="card pmc-card" id="pmcSection" data-nav-section="performance">
             <div class="card-heading"><div><h2>📈 Gestão da Performance</h2><p>Condicionamento (CTL), Fadiga (ATL) e Forma (TSB) · Intervals.icu</p></div><button id="refreshPmcButton" class="btn btn-outline" type="button">Atualizar</button></div>
             <div id="pmcMessage" class="notice" role="status" aria-live="polite">Carregando carga de treino...</div>
-            <div id="pmcMetrics" class="pmc-metrics"><div><span>FITNESS</span><strong id="pmcCtl">—</strong><small class="pmc-metric-description">Em construção</small><small class="pmc-metric-code">CTL · Condicionamento</small></div><div><span>FORMA</span><div class="pmc-tsb-line"><strong id="pmcTsb">—</strong></div><small class="pmc-metric-description" id="pmcFormDescription">Fresco, pronto para prova</small><small class="pmc-metric-code">TSB · Forma</small><span id="pmcTsbStatus" class="pmc-tsb-status balanced" aria-live="polite" hidden>Aguardando dados</span></div><div><span>FADIGA</span><strong id="pmcAtl">—</strong><small class="pmc-metric-description">Recuperado</small><small class="pmc-metric-code">ATL · Fadiga</small></div></div>
+            <div id="pmcMetrics" class="pmc-metrics"><div><span>FITNESS</span><strong id="pmcCtl">—</strong><small class="pmc-metric-description" id="pmcFitnessDescription">Aguardando dados</small><small class="pmc-metric-code">CTL · Condicionamento</small></div><div><span>FORMA</span><div class="pmc-tsb-line"><strong id="pmcTsb">—</strong></div><small class="pmc-metric-description" id="pmcFormDescription">Fresco, pronto para prova</small><small class="pmc-metric-code">TSB · Forma</small><span id="pmcTsbStatus" class="pmc-tsb-status balanced" aria-live="polite" hidden>Aguardando dados</span></div><div><span>FADIGA</span><strong id="pmcAtl">—</strong><small class="pmc-metric-description" id="pmcFatigueDescription">Aguardando dados</small><small class="pmc-metric-code">ATL · Fadiga</small></div></div>
             <div id="pmcInsight" class="pmc-insight" role="status" aria-live="polite">A interpretação da sua evolução aparecerá aqui quando os dados forem carregados.</div>
             <div id="pmcChart" class="pmc-chart" role="img" aria-label="Gráfico de condicionamento, fadiga e forma nos últimos meses"></div><div class="four-week-legend pmc-legend"><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#0ea5e9" stroke="none"/></svg>CTL · Condicionamento</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#f59e0b" stroke="none"/></svg>ATL · Fadiga</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#22c55e" stroke="none"/></svg>TSB · Forma</span></div>
           </section>
@@ -2690,6 +2690,30 @@
         const ctl=Number(latest.fitness), atl=Number(latest.fatigue), tsb=Number(latest.form);
         if (![ctl,atl,tsb].every(Number.isFinite)) throw new Error("Os dados mais recentes de CTL, ATL ou TSB estão incompletos.");
         $("#pmcCtl").textContent=ctl.toFixed(1); $("#pmcAtl").textContent=atl.toFixed(1); $("#pmcTsb").textContent=tsb.toFixed(1);
+        // Descrições dos três indicadores mudam junto com os valores atuais.
+        const fitnessDescription=$("#pmcFitnessDescription");
+        const formDescription=$("#pmcFormDescription");
+        const fatigueDescription=$("#pmcFatigueDescription");
+        if (fitnessDescription) {
+          fitnessDescription.textContent = ctl < 25 ? "Em construção"
+            : ctl < 50 ? "Base em desenvolvimento"
+            : ctl < 75 ? "Bom condicionamento"
+            : "Condicionamento elevado";
+        }
+        if (formDescription) {
+          formDescription.textContent = tsb > 25 ? "Muito fresco"
+            : tsb > 10 ? "Fresco, pronto para prova"
+            : tsb > 5 ? "Bem recuperado"
+            : tsb >= -10 ? "Equilibrado"
+            : tsb >= -20 ? "Fadiga acumulada"
+            : "Muito fatigado";
+        }
+        if (fatigueDescription) {
+          fatigueDescription.textContent = atl < ctl - 10 ? "Baixa · Recuperado"
+            : atl <= ctl + 10 ? "Moderada · Carga equilibrada"
+            : atl <= ctl + 20 ? "Alta · Atenção à recuperação"
+            : "Muito alta · Priorize recuperação";
+        }
         const tsbStatus=$("#pmcTsbStatus");
         let tsbLabel="Equilíbrio",tsbClass="balanced";
         if(tsb>5){tsbLabel="Fresco / Prontidão";tsbClass="fresh";}
