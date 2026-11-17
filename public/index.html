@@ -1727,7 +1727,7 @@
       await Promise.all([loadWeeklyStats(), loadDailyStats(), loadFourWeekSummary(), loadPmc(), loadGoogleHealthStatus()]);
         const healthResult = new URLSearchParams(window.location.search);
         if (healthResult.get("googleHealth") === "connected") {
-          setMessage($("#healthIntegrationMessage"), "Apple Saúde conectado com sucesso. Faça a primeira sincronização.", "success");
+          setMessage($("#healthIntegrationMessage"), "Apple Saúde conectado com sucesso. A sincronização inicial foi verificada.", "success");
           history.replaceState({}, "", window.location.pathname);
         } else if (healthResult.has("googleHealthError")) {
           setMessage($("#healthIntegrationMessage"), "Não foi possível concluir a conexão com o Google (" + healthResult.get("googleHealthError") + "). Tente conectar novamente.", "error");
@@ -2942,8 +2942,20 @@
         : "Conta ainda não conectada.";
       $("#connectHealthButton").textContent = connected ? "Reconectar Apple Saúde" : "Conectar Apple Saúde";
       $("#syncHealthButton").disabled = !connected;
-      if (connected) await loadGoogleHealthSummary();
-      else {
+      if (connected) {
+        const lastSyncAt = data.lastSync?.syncedAt ? Date.parse(data.lastSync.syncedAt) : 0;
+        const needsDailySync = !lastSyncAt || Date.now() - lastSyncAt >= 24 * 60 * 60 * 1000;
+        if (needsDailySync) {
+          setMessage($("#healthIntegrationMessage"), "Atualizando automaticamente os dados de sono e saúde...", "info");
+          try {
+            await apiRequest("/api/google-health/sync", { method: "POST" });
+            setMessage($("#healthIntegrationMessage"), "Dados de sono e saúde atualizados automaticamente.", "success");
+          } catch (error) {
+            setMessage($("#healthIntegrationMessage"), error.message, "warning");
+          }
+        }
+        await loadGoogleHealthSummary();
+      } else {
         $("#healthSleepValue").textContent = "—";
         $("#healthHeartRateValue").textContent = "—";
         $("#healthSyncDetails").textContent = "Autorize a conexão para importar os dados do Apple Saúde. Pedais continuam vindo da Garmin.";
