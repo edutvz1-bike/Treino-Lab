@@ -2249,7 +2249,7 @@
           if (seconds) duration = Number(seconds[1].replace(",", ".")) / 60;
         }
         if (!duration) continue;
-        const repeat = clean.match(/(?:^|\\s)(\\d+)\\s*[x×]\s*(?=\\d)/i);
+        const repeat = clean.match(/(?:^|\s)(\d+)\s*[x×]\s*(?=\d)/i);
         if (repeat) duration *= Math.max(1, Math.min(30, Number(repeat[1])));
 
         const pctFtp = clean.match(/(\d+(?:[.,]\d+)?)\s*(?:-|–|a)\s*(\d+(?:[.,]\d+)?)\s*%\s*(?:do\s*)?FTP|\b(\d+(?:[.,]\d+)?)\s*%\s*FTP/i);
