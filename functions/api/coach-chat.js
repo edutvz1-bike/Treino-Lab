@@ -31,7 +31,45 @@ function formatDuration(seconds) {
 async function loadTrainingContext(env) {
   const today = localDateKey();
   const monday = weekStartKey(today);
-  const context = { today, monday, activities: [], pmc: null, notes: [] };
+  const context = { today, monday, activities: [], pmc: null, recovery: null, notes: [] };
+
+  if (env.HEALTH_KV) {
+    try {
+      const storedHealth = await env.HEALTH_KV.get("google-health:data");
+      if (storedHealth) {
+        const health = JSON.parse(storedHealth);
+        const samples = Array.isArray(health.heartRateVariability) ? health.heartRateVariability : [];
+        const daily = Array.isArray(health.dailyHeartRateVariability) ? health.dailyHeartRateVariability : [];
+        const latest = (records, paths) => records.map(record => {
+          let value = null;
+          for (const path of paths) {
+            value = path.split(".").reduce((obj, key) => obj?.[key], record);
+            if (value !== null && value !== undefined) break;
+          }
+          const time = record?.heartRateVariability?.sampleTime?.physicalTime || record?.sampleTime?.physicalTime ||
+            record?.dailyHeartRateVariability?.date?.year && record?.dailyHeartRateVariability?.date;
+          const date = typeof time === "string" ? Date.parse(time) : time?.year ? Date.UTC(time.year, (time.month || 1) - 1, time.day || 1) : 0;
+          return { value: Number(value), date };
+        }).filter(item => Number.isFinite(item.value) && item.value > 0 && item.value <= 250).sort((a,b) => b.date-a.date)[0] || null;
+        const sample = latest(samples, ["heartRateVariability.rootMeanSquareOfSuccessiveDifferencesMilliseconds", "rootMeanSquareOfSuccessiveDifferencesMilliseconds"]);
+        const day = latest(daily, ["dailyHeartRateVariability.averageHeartRateVariabilityMilliseconds", "averageHeartRateVariabilityMilliseconds", "dailyHeartRateVariability.deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds"]);
+        const chosen = sample || day;
+        const sleep = Array.isArray(health.sleep) ? health.sleep : [];
+        const lastSleep = sleep.map(record => {
+          const session = record?.sleep || record;
+          const minutes = Number(session?.summary?.minutesAsleep ?? session?.summary?.minutes_asleep);
+          return Number.isFinite(minutes) && minutes > 0 ? minutes : null;
+        }).filter(Boolean).at(-1) || null;
+        context.recovery = {
+          hrv: chosen ? Math.round(chosen.value * 10) / 10 : null,
+          sleepMinutes: lastSleep,
+          syncedAt: health.syncedAt || null
+        };
+      }
+    } catch (error) {
+      context.notes.push("Não foi possível ler os dados de recuperação do Apple Saúde: " + (error?.message || "erro de leitura") + ".");
+    }
+  }
 
   if (env.GARMIN_PERSONAL_API_KEY) {
     try {
@@ -115,6 +153,14 @@ function trainingContextText(context) {
     }
   } else {
     lines.push("- Nenhuma atividade concluída foi recebida da Garmin nesta semana.");
+  }
+  lines.push("RECUPERAÇÃO E SAÚDE (Apple Saúde via Google Health):");
+  if (context.recovery) {
+    lines.push("- HRV mais recente (RMSSD quando disponível): " + (context.recovery.hrv == null ? "indisponível" : context.recovery.hrv + " ms"));
+    lines.push("- Sono importado: " + (context.recovery.sleepMinutes == null ? "indisponível" : formatDuration(context.recovery.sleepMinutes * 60)));
+    lines.push("- Sincronização: " + (context.recovery.syncedAt || "data não informada"));
+  } else {
+    lines.push("- Dados de recuperação do Apple Saúde ainda não disponíveis.");
   }
   lines.push("CONDICIONAMENTO (Intervals.icu), últimos dias:");
   if (context.pmc?.length) {
