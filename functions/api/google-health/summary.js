@@ -47,6 +47,7 @@ export async function onRequestGet({ env }) {
     const data = JSON.parse(stored);
     const sleep = Array.isArray(data.sleep) ? data.sleep : [];
     const heartRate = Array.isArray(data.heartRate) ? data.heartRate : [];
+    const restingHeartRate = Array.isArray(data.dailyRestingHeartRate) ? data.dailyRestingHeartRate : [];
     const hrvSamples = Array.isArray(data.heartRateVariability) ? data.heartRateVariability : [];
     const dailyHrv = Array.isArray(data.dailyHeartRateVariability) ? data.dailyHeartRateVariability : [];
 
@@ -80,6 +81,22 @@ export async function onRequestGet({ env }) {
     const averageHeartRate = bpmValues.length
       ? Math.round(bpmValues.reduce((sum, value) => sum + value, 0) / bpmValues.length)
       : null;
+
+    const restingValues = restingHeartRate.map(record => {
+      const date = firstValue(record, ["dailyRestingHeartRate.date", "date"]);
+      let dateMs = null;
+      if (date && typeof date === "object" && Number.isFinite(Number(date.year))) {
+        dateMs = Date.UTC(Number(date.year), Math.max(0, Number(date.month || 1) - 1), Number(date.day || 1));
+      } else {
+        dateMs = timestamp(date);
+      }
+      return {
+        value: Number(firstValue(record, ["dailyRestingHeartRate.beatsPerMinute", "beatsPerMinute"])),
+        date: dateMs
+      };
+    }).filter(item => Number.isFinite(item.value) && item.value >= 25 && item.value <= 220)
+      .sort((a, b) => (b.date || 0) - (a.date || 0));
+    const latestRestingHeartRate = restingValues[0] || null;
 
     const sampleValues = hrvSamples.map(record => ({
       value: Number(firstValue(record, [
@@ -120,6 +137,9 @@ export async function onRequestGet({ env }) {
       sleepMinutes: sleepMinutes > 0 ? sleepMinutes : null,
       averageHeartRate,
       heartRateRecords: heartRate.length,
+      restingHeartRate: latestRestingHeartRate ? Math.round(latestRestingHeartRate.value) : null,
+      restingHeartRateDate: latestRestingHeartRate?.date ? new Date(latestRestingHeartRate.date).toISOString() : null,
+      restingHeartRateRecords: restingHeartRate.length,
       hrvValue: latestHrv ? Math.round(latestHrv.value * 10) / 10 : null,
       hrvMetric: latestHrv?.metric || null,
       hrvDate: latestHrv?.date ? new Date(latestHrv.date).toISOString() : null,
