@@ -1205,7 +1205,7 @@
           <section class="card" id="lastRideAnalysisCard" data-nav-section="analyze">
             <div class="card-heading">
               <div>
-                <h2>🔍 Analisar meu último pedal</h2>
+                <h2>🔍 Analisar meu último treino</h2>
                 <p>Busque seu treino mais recente no Intervals.icu e receba uma avaliação da IA.</p>
               </div></div>
             <div class="notice info">
@@ -1485,7 +1485,7 @@
       <strong>Treino Lab</strong> · Treine com propósito. Evolua com consistência.
     </footer>
   </main>
-  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a><a href="#lastRideAnalysisCard" data-nav="analyze" aria-label="Analisar meu último pedal"><span aria-hidden="true">🔍</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#coachAiSection" data-nav="coach" aria-label="Conversar com o Coach IA"><span aria-hidden="true">🧠</span><small>Coach IA</small></a></nav>
+  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação principal" hidden><a href="#weeklySummarySection" data-nav="week" aria-label="Resumo semanal"><span aria-hidden="true">📅</span><small>Semana</small></a><a href="#pmcSection" data-nav="performance" aria-label="Gestão de Performance"><span aria-hidden="true">📈</span><small>Performance</small></a><a href="#lastRideAnalysisCard" data-nav="analyze" aria-label="Analisar meu último treino"><span aria-hidden="true">🔍</span><small>Analisar</small></a><a href="#workoutSection" data-nav="workout" aria-label="Gerar meu treino"><span aria-hidden="true">🚴</span><small>Treino</small></a><a href="#coachAiSection" data-nav="coach" aria-label="Conversar com o Coach IA"><span aria-hidden="true">🧠</span><small>Coach IA</small></a></nav>
 
   <script>
     "use strict";
@@ -1816,9 +1816,23 @@
       if(force)setLoading(button,true,"Buscando...");
       const cached=readDailyStatsCache();
       if(cached.length){dailyActivities=cached;selectLatestRide();renderStatsCalendar();renderDailyActivity(selectedStatsDate);}
+      let lastError=null;
       try {
-        const data=await apiRequest("/api/garmin-activities?startDate="+encodeURIComponent(GARMIN_HISTORY_START),{method:"GET"});
-        if(!data||data.error||!Array.isArray(data.activities))throw new Error(data?.message||"A Garmin retornou uma resposta inesperada.");
+        let data=null;
+        // A primeira chamada após o login pode coincidir com a inicialização das APIs.
+        // Em caso de falha transitória, tenta novamente automaticamente antes de exibir erro.
+        for(let attempt=0;attempt<2;attempt++){
+          try {
+            data=await apiRequest("/api/garmin-activities?startDate="+encodeURIComponent(GARMIN_HISTORY_START),{method:"GET"});
+            if(!data||data.error||!Array.isArray(data.activities))throw new Error(data?.message||"A Garmin retornou uma resposta inesperada.");
+            lastError=null;
+            break;
+          } catch(error) {
+            lastError=error;
+            if(attempt===0) await new Promise(resolve=>setTimeout(resolve,1200));
+          }
+        }
+        if(lastError)throw lastError;
         dailyActivities=data.activities;
         selectLatestRide();
         saveDailyStatsCache(dailyActivities);
@@ -2351,7 +2365,7 @@
           const date = a.start_date_local ? new Date(a.start_date_local.replace(" ", "T")).toLocaleString("pt-BR") : "";
           const duration = Number.isFinite(Number(a.moving_time)) ? Math.round(Number(a.moving_time) / 60) + " min" : "";
           const distance = Number.isFinite(Number(a.distance)) && Number(a.distance) > 0 ? (Number(a.distance) / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " km" : "";
-          meta.textContent = [a.name || "Último pedal", date, distance, duration].filter(Boolean).join(" · ");
+          meta.textContent = [a.name || "Último treino", date, distance, duration].filter(Boolean).join(" · ");
         }
         renderWorkoutMarkdown(result, data.analysis || "A IA não retornou uma análise.");
         result.hidden = false;
