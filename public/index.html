@@ -1185,7 +1185,7 @@
 
     <!-- ÁREA AUTENTICADA -->
     <section id="dashboardSection" hidden>
-      <div class="landing-intro dashboard-intro"><h1>Bem-vindo ao Treino Lab</h1><p class="landing-copy">Sua evolução conectada a dados, inteligência artificial e treinos estruturados.</p><div class="feature-grid"><article class="feature-card"><span class="feature-icon">↗</span><h3>Intervals.icu</h3><p>Dados de carga, evolução e forma.</p></article><article class="feature-card"><span class="feature-icon">✦</span><h3>Análise com IA</h3><p>Insights objetivos sobre seus pedais.</p></article><article class="feature-card"><span class="feature-icon">⚡</span><h3>Treinos estruturados</h3><p>Sessões adaptadas ao seu objetivo.</p></article></div></div>
+      <div class="landing-intro dashboard-intro"><h1>Bem-vindo ao Treino Lab</h1><p class="landing-copy">Sua evolução conectada a dados, inteligência artificial e treinos estruturados.</p><div class="feature-grid"><article class="feature-card"><span class="feature-icon">📈</span><h3>Intervals.icu</h3><p>Dados de carga, evolução e forma.</p></article><article class="feature-card"><span class="feature-icon">🤖</span><h3>Análise com IA</h3><p>Insights objetivos sobre seus pedais.</p></article><article class="feature-card"><span class="feature-icon">🚴</span><h3>Treinos estruturados</h3><p>Sessões adaptadas ao seu objetivo.</p></article></div></div>
       
       <div class="profile-summary" id="dashboardHome">
         
@@ -1708,7 +1708,7 @@
       showDashboard(user);
       $("#logoutButton").hidden = false;
       syncMobileNavigation();
-      await Promise.all([loadWeeklyStats(), loadFourWeekSummary(), loadPmc()]);
+      await Promise.all([loadWeeklyStats(), loadDailyStats(), loadFourWeekSummary(), loadPmc()]);
 
       return data;
     }
