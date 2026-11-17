@@ -1209,6 +1209,7 @@
             <div class="weekly-stats-grid">
               <div class="weekly-stat"><span>Último sono registrado</span><strong id="healthSleepValue">—</strong></div>
               <div class="weekly-stat"><span>Frequência cardíaca média</span><strong id="healthHeartRateValue">—</strong></div>
+              <div class="weekly-stat"><span>Variabilidade cardíaca (HRV)</span><strong id="healthHrvValue">—</strong></div>
             </div>
             <p id="healthSyncDetails" class="muted small">Os pedais e exercícios continuam vindo da Garmin.</p>
             <div class="actions">
@@ -2920,6 +2921,7 @@
       if (!data.available) {
         $("#healthSleepValue").textContent = "—";
         $("#healthHeartRateValue").textContent = "—";
+        $("#healthHrvValue").textContent = "—";
         $("#healthSyncDetails").textContent = "Ainda não há dados sincronizados.";
         return;
       }
@@ -2927,9 +2929,11 @@
         ? Math.floor(data.sleepMinutes / 60) + "h " + (data.sleepMinutes % 60) + "min"
         : "Sem dados";
       $("#healthHeartRateValue").textContent = data.averageHeartRate ? data.averageHeartRate + " bpm" : "Sem dados";
+      $("#healthHrvValue").textContent = data.hrvValue ? data.hrvValue.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " ms" : "Sem dados";
       const synced = data.syncedAt ? new Date(data.syncedAt).toLocaleString("pt-BR") : "—";
+      const hrvDetail = data.hrvValue ? " · HRV: " + (data.hrvMetric || "RMSSD") + (data.hrvDate ? " (" + new Date(data.hrvDate).toLocaleDateString("pt-BR") + ")" : "") : " · HRV ainda sem registro disponível";
       $("#healthSyncDetails").textContent = "Última sincronização: " + synced +
-        " · " + data.sleepRecords + " registros de sono · " + data.heartRateRecords + " registros cardíacos. Pedais continuam vindo da Garmin.";
+        " · " + data.sleepRecords + " registros de sono · " + data.heartRateRecords + " registros cardíacos" + hrvDetail + ". Pedais continuam vindo da Garmin.";
     }
 
     async function loadGoogleHealthStatus() {
@@ -2958,6 +2962,7 @@
       } else {
         $("#healthSleepValue").textContent = "—";
         $("#healthHeartRateValue").textContent = "—";
+        $("#healthHrvValue").textContent = "—";
         $("#healthSyncDetails").textContent = "Autorize a conexão para importar os dados do Apple Saúde. Pedais continuam vindo da Garmin.";
       }
     }
@@ -2974,7 +2979,7 @@
         const result = await apiRequest("/api/google-health/sync", { method: "POST" });
         await loadGoogleHealthSummary();
         setMessage($("#healthIntegrationMessage"),
-          "Sincronização concluída: " + result.sleepRecords + " registros de sono e " + result.heartRateRecords + " registros cardíacos.",
+          "Sincronização concluída: " + result.sleepRecords + " registros de sono, " + result.heartRateRecords + " registros cardíacos e " + ((result.hrvRecords || 0) + (result.dailyHrvRecords || 0)) + " registros de HRV.",
           "success");
       } catch (error) {
         setMessage($("#healthIntegrationMessage"), error.message, "error");
