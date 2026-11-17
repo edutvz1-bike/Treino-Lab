@@ -53,7 +53,10 @@ async function loadTrainingContext(env) {
         }).filter(item => Number.isFinite(item.value) && item.value > 0 && item.value <= 250).sort((a,b) => b.date-a.date)[0] || null;
         const sample = latest(samples, ["heartRateVariability.rootMeanSquareOfSuccessiveDifferencesMilliseconds", "rootMeanSquareOfSuccessiveDifferencesMilliseconds"]);
         const day = latest(daily, ["dailyHeartRateVariability.averageHeartRateVariabilityMilliseconds", "averageHeartRateVariabilityMilliseconds", "dailyHeartRateVariability.deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds"]);
-        const chosen = sample || day;
+        const chosen = sample && day
+          ? (sample.date >= day.date ? { ...sample, metric: "RMSSD" } : { ...day, metric: "RMSSD diário" })
+          : sample ? { ...sample, metric: "RMSSD" }
+            : day ? { ...day, metric: "RMSSD diário" } : null;
         const sleep = Array.isArray(health.sleep) ? health.sleep : [];
         const lastSleep = sleep.map(record => {
           const session = record?.sleep || record;
@@ -62,6 +65,7 @@ async function loadTrainingContext(env) {
         }).filter(Boolean).at(-1) || null;
         context.recovery = {
           hrv: chosen ? Math.round(chosen.value * 10) / 10 : null,
+          hrvMetric: chosen?.metric || null,
           sleepMinutes: lastSleep,
           syncedAt: health.syncedAt || null
         };
@@ -156,7 +160,7 @@ function trainingContextText(context) {
   }
   lines.push("RECUPERAÇÃO E SAÚDE (Apple Saúde via Google Health):");
   if (context.recovery) {
-    lines.push("- HRV mais recente (RMSSD quando disponível): " + (context.recovery.hrv == null ? "indisponível" : context.recovery.hrv + " ms"));
+    lines.push("- HRV mais recente (" + (context.recovery.hrvMetric || "RMSSD") + "): " + (context.recovery.hrv == null ? "indisponível" : context.recovery.hrv + " ms"));
     lines.push("- Sono importado: " + (context.recovery.sleepMinutes == null ? "indisponível" : formatDuration(context.recovery.sleepMinutes * 60)));
     lines.push("- Sincronização: " + (context.recovery.syncedAt || "data não informada"));
   } else {
