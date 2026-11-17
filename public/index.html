@@ -973,7 +973,7 @@
     :root[data-theme="dark"] .pmc-tsb-status.fresh { color:#bbf7d0; background:#153b2a; border-color:#276749; }
     :root[data-theme="dark"] .pmc-tsb-status.optimized { color:#bae6fd; background:#12344a; border-color:#245b78; }
     :root[data-theme="dark"] .pmc-tsb-status.fatigue { color:#fde68a; background:#493719; border-color:#755b24; }
-    .pmc-chart { min-height:170px; overflow:hidden; } .pmc-chart svg { display:block; width:100%; height:auto; }
+    .pmc-chart { min-height:220px; overflow:hidden; padding:12px 8px 4px; border:1px solid var(--line); border-radius:16px; background:linear-gradient(180deg,var(--soft-blue),var(--card)); } .pmc-chart svg { display:block; width:100%; height:auto; overflow:visible; } .pmc-legend { justify-content:center; gap:18px; margin-top:12px; }
     .pmc-insight { margin:0 0 16px; padding:13px 15px; border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:12px; background:var(--soft-blue); color:var(--ink); font-size:13px; line-height:1.55; }
     .pmc-insight strong { display:block; margin-bottom:3px; color:var(--navy); font-size:14px; }
     .layout { margin-bottom:22px; }
@@ -2872,9 +2872,35 @@
         const strong=document.createElement("strong"); strong.textContent=headline;
         const span=document.createElement("span"); span.textContent=detail+" A leitura considera a tendência dos últimos 7 dias e os valores atuais de CTL, ATL e TSB; não substitui sua percepção de recuperação.";
         insight.append(strong,span);
-        const w=640,h=190,p=24,vals=points.flatMap(x=>[Number(x.fitness),Number(x.fatigue),Number(x.form)]),min=Math.min(0,...vals),max=Math.max(1,...vals),x=i=>p+i/Math.max(1,points.length-1)*(w-2*p),y=v=>h-p-(v-min)/(max-min)*(h-2*p),ns="http://www.w3.org/2000/svg";
-        const svg=document.createElementNS(ns,"svg");svg.setAttribute("viewBox","0 0 "+w+" "+h);
-        [["fitness","#0ea5e9"],["fatigue","#f59e0b"],["form","#22c55e"]].forEach(([key,color])=>{const path=document.createElementNS(ns,"path");path.setAttribute("fill","none");path.setAttribute("stroke",color);path.setAttribute("stroke-width","2.5");path.setAttribute("stroke-linecap","round");path.setAttribute("d",points.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+","+y(Number(v[key])).toFixed(1)).join(" "));svg.append(path);});
+        // Gráfico em dois painéis: CTL/ATL compartilham escala; TSB usa escala própria.
+        // Isso evita que a forma (que pode ser negativa) achate visualmente as curvas de carga.
+        const w=760,h=330,left=48,right=18,plotW=w-left-right,topY=34,topH=142,bottomY=226,bottomH=58;
+        const ns="http://www.w3.org/2000/svg",svg=document.createElementNS(ns,"svg");
+        svg.setAttribute("viewBox","0 0 "+w+" "+h);svg.setAttribute("role","img");
+        svg.setAttribute("aria-label","Evolução diária de condicionamento CTL, fadiga ATL e forma TSB");
+        const add=(tag,attrs,parent=svg,textValue)=>{const el=document.createElementNS(ns,tag);Object.entries(attrs||{}).forEach(([k,v])=>el.setAttribute(k,String(v)));if(textValue!=null)el.textContent=textValue;parent.append(el);return el;};
+        const defs=add("defs",{});
+        [["ctlFill","#0ea5e9"],["atlFill","#f59e0b"],["tsbFill","#22c55e"]].forEach(([id,color])=>{const g=add("linearGradient",{id,x1:"0",y1:"0",x2:"0",y2:"1"},defs);add("stop",{offset:"0%","stop-color":color,"stop-opacity":".28"},g);add("stop",{offset:"100%","stop-color":color,"stop-opacity":".015"},g);});
+        const x=i=>left+i/Math.max(1,points.length-1)*plotW;
+        const ctlValues=points.map(v=>Number(v.fitness)),atlValues=points.map(v=>Number(v.fatigue)),tsbValues=points.map(v=>Number(v.form));
+        const loadMax=Math.max(10,...ctlValues,...atlValues)*1.12,tsbMin=Math.min(-10,...tsbValues)-3,tsbMax=Math.max(10,...tsbValues)+3;
+        const yLoad=v=>topY+topH-(v/loadMax)*topH,yTsb=v=>bottomY+bottomH-(v-tsbMin)/(tsbMax-tsbMin)*bottomH;
+        const linePath=(values,fn)=>values.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+","+fn(v).toFixed(1)).join(" ");
+        const areaPath=(values,fn,base)=>linePath(values,fn)+" L"+x(values.length-1).toFixed(1)+","+base+" L"+x(0).toFixed(1)+","+base+" Z";
+        add("text",{x:left,y:17,fill:"currentColor","font-size":12,"font-weight":800},svg,"CARGA DE TREINO");
+        add("text",{x:left,y:207,fill:"currentColor","font-size":12,"font-weight":800},svg,"FORMA · TSB");
+        for(let i=0;i<=4;i++){const val=loadMax*i/4,yy=yLoad(val);add("line",{x1:left,y1:yy,x2:w-right,y2:yy,stroke:"currentColor","stroke-opacity":".12","stroke-dasharray":"3 5"});add("text",{x:left-10,y:yy+4,fill:"currentColor","fill-opacity":".58","font-size":10,"text-anchor":"end"},svg,Math.round(val));}
+        const zeroY=yTsb(0);add("line",{x1:left,y1:zeroY,x2:w-right,y2:zeroY,stroke:"currentColor","stroke-opacity":".35","stroke-dasharray":"4 4"});
+        [-1,0,1].forEach(i=>{const v=tsbMin+(tsbMax-tsbMin)*(i+1)/2,yy=yTsb(v);add("text",{x:left-10,y:yy+4,fill:"currentColor","fill-opacity":".58","font-size":10,"text-anchor":"end"},svg,Math.round(v));});
+        add("path",{d:areaPath(ctlValues,yLoad,topY+topH),fill:"url(#ctlFill)"});
+        add("path",{d:areaPath(atlValues,yLoad,topY+topH),fill:"url(#atlFill)"});
+        [["fitness","#0ea5e9",ctlValues],["fatigue","#f59e0b",atlValues]].forEach(([key,color,values])=>{add("path",{d:linePath(values,yLoad),fill:"none",stroke:color,"stroke-width":3,"stroke-linecap":"round","stroke-linejoin":"round"});});
+        add("path",{d:areaPath(tsbValues,yTsb,zeroY),fill:"url(#tsbFill)"});
+        add("path",{d:linePath(tsbValues,yTsb),fill:"none",stroke:"#22c55e","stroke-width":3,"stroke-linecap":"round","stroke-linejoin":"round"});
+        const last=points.length-1;
+        [["fitness","#0ea5e9",yLoad(ctlValues[last])],["fatigue","#f59e0b",yLoad(atlValues[last])],["form","#22c55e",yTsb(tsbValues[last])]].forEach(([key,color,yy])=>{add("circle",{cx:x(last),cy:yy,r:5,fill:color,stroke:"var(--card)","stroke-width":2});});
+        const tickCount=Math.min(6,points.length);
+        for(let i=0;i<tickCount;i++){const idx=Math.round(i*(points.length-1)/Math.max(1,tickCount-1)),raw=points[idx].date||points[idx].day||points[idx].start_date||"";let label=String(raw);const parsed=new Date(label);if(label&&Number.isFinite(parsed.getTime()))label=parsed.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});else if(label.length>10)label=label.slice(5,10);add("text",{x:x(idx),y:312,fill:"currentColor","fill-opacity":".62","font-size":10,"text-anchor":"middle"},svg,label||("D"+(idx+1)));}
         chart.replaceChildren(svg);setMessage(message,"Dados atualizados pelo Intervals.icu · "+points.length+" dias","success");
       } catch(error) { chart.replaceChildren();setMessage(message,"Gráfico PMC indisponível: "+error.message,"warning"); }
     }
