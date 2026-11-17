@@ -1281,8 +1281,8 @@
                 </div>
 
                 <div class="field">
-                  <label for="sleepDuration">Tempo dormindo (minutos)</label>
-                  <input id="sleepDuration" name="sleepDuration" type="number" min="1" max="1440" step="1" required placeholder="Importado de Sono e saúde">
+                  <label for="sleepDuration">Tempo dormindo (hh:mm)</label>
+                  <input id="sleepDuration" name="sleepDuration" type="text" inputmode="numeric" pattern="(?:[01]?\d|2[0-3]):[0-5]\d" required placeholder="Ex.: 07:30">
                   <small>Preenchido automaticamente com a duração do sono sincronizada em Sono e saúde.</small>
                 </div>
 
@@ -2146,7 +2146,7 @@
         notes: String(formData.get("notes") || "").trim(),
         plannedDate: String(formData.get("plannedDate") || ""),
         recovery: {
-          sleepTotalMinutes: Math.round(Number(String(formData.get("sleepDuration")).replace(",", "."))),
+          sleepTotalMinutes: (() => { const match = String(formData.get("sleepDuration") || "").trim().match(/^(\d{1,2}):([0-5]\d)$/); return match ? Number(match[1]) * 60 + Number(match[2]) : 0; })(),
           restingHR: Number(formData.get("restingHR")),
           hrvMs: Number(formData.get("hrvMs")),
           wakingFeeling: "normal",
@@ -2600,7 +2600,7 @@
       try {
         const saved = JSON.parse(localStorage.getItem(HEALTH_SAVE_STORAGE_KEY) || "null");
         if (!saved || !Number.isFinite(saved.totalMinutes)) return;
-        $("#sleepDuration").value = saved.hours + "h " + String(saved.minutes).padStart(2, "0") + "min";
+        $("#sleepDuration").value = String(saved.hours).padStart(2, "0") + ":" + String(saved.minutes).padStart(2, "0");
         if (Number.isFinite(saved.restingHR) && saved.restingHR >= 25 && saved.restingHR <= 220) $("#restingHR").value = String(saved.restingHR);
         if (Number.isFinite(saved.hrvMs) && saved.hrvMs >= 0 && saved.hrvMs <= 300) $("#hrvMs").value = String(saved.hrvMs);
         if (Number.isFinite(saved.heartRateAverage)) $("#sleepHeartRateAverage").value = String(saved.heartRateAverage);
@@ -2931,7 +2931,7 @@
         : "Sem dados";
       // Preenche os campos do gerador com os mesmos dados exibidos em Sono e saúde.
       $("#sleepDuration").value = Number.isFinite(Number(data.sleepMinutes)) && Number(data.sleepMinutes) > 0
-        ? String(Math.round(Number(data.sleepMinutes))) : "";
+        ? String(Math.floor(Number(data.sleepMinutes) / 60)).padStart(2, "0") + ":" + String(Math.round(Number(data.sleepMinutes) % 60)).padStart(2, "0") : "";
       $("#healthHeartRateValue").textContent = data.averageHeartRate ? data.averageHeartRate + " bpm" : "Sem dados";
       $("#healthRestingHeartRateValue").textContent = data.restingHeartRate ? data.restingHeartRate + " bpm" : "Sem dados";
       $("#healthHrvValue").textContent = data.hrvValue ? data.hrvValue.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " ms" : "Sem dados";
