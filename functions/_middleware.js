@@ -43,6 +43,8 @@ export async function onRequest({ request, env, next }) {
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/api/")) return next();
   if (url.pathname === "/api/login" && request.method === "POST") return next();
+  // O callback OAuth é público, mas valida o state de uso único antes de trocar o código.
+  if (url.pathname === "/api/google-health/callback" && request.method === "GET") return next();
   if (url.pathname === "/api/logout" && request.method === "POST") {
     const valid = await verifySession(getCookie(request, COOKIE_NAME), env.APP_SESSION_SECRET);
     if (!valid) return json({ error: "unauthorized", message: "Faça login para continuar." }, 401);
