@@ -2977,7 +2977,7 @@
         const result = await apiRequest("/api/google-health/sync", { method: "POST" });
         await loadGoogleHealthSummary();
         setMessage($("#healthIntegrationMessage"),
-          "Sincronização concluída: " + result.sleepRecords + " registros de sono, " + result.heartRateRecords + " registros cardíacos e " + ((result.hrvRecords || 0) + (result.dailyHrvRecords || 0)) + " registros de HRV.",
+          "Sincronização concluída: " + result.sleepRecords + " registros de sono, " + result.heartRateRecords + " registros cardíacos, " + (result.restingHeartRateRecords || 0) + " registros de FC de repouso e " + ((result.hrvRecords || 0) + (result.dailyHrvRecords || 0)) + " registros de HRV.",
           "success");
       } catch (error) {
         setMessage($("#healthIntegrationMessage"), error.message, "error");
