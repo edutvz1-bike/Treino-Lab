@@ -1476,7 +1476,7 @@
             <div id="pmcMessage" class="notice" role="status" aria-live="polite">Carregando carga de treino...</div>
             <div id="pmcMetrics" class="pmc-metrics"><div><span>FITNESS</span><strong id="pmcCtl">—</strong><small class="pmc-metric-description" id="pmcFitnessDescription">Aguardando dados</small><small class="pmc-metric-code">CTL · Condicionamento</small></div><div><span>FORMA</span><div class="pmc-tsb-line"><strong id="pmcTsb">—</strong></div><small class="pmc-metric-description" id="pmcFormDescription">Fresco, pronto para prova</small><small class="pmc-metric-code">TSB · Forma</small><span id="pmcTsbStatus" class="pmc-tsb-status balanced" aria-live="polite" hidden>Aguardando dados</span></div><div><span>FADIGA</span><strong id="pmcAtl">—</strong><small class="pmc-metric-description" id="pmcFatigueDescription">Aguardando dados</small><small class="pmc-metric-code">ATL · Fadiga</small></div></div>
             <div id="pmcInsight" class="pmc-insight" role="status" aria-live="polite">A interpretação da sua evolução aparecerá aqui quando os dados forem carregados.</div>
-            <div id="pmcChart" class="pmc-chart" role="img" aria-label="Gráfico de condicionamento, fadiga e forma nos últimos meses"></div><div class="four-week-legend pmc-legend"><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#0ea5e9" stroke="none"/></svg>CTL · Condicionamento</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#f59e0b" stroke="none"/></svg>ATL · Fadiga</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#22c55e" stroke="none"/></svg>TSB · Forma</span></div>
+            <div id="pmcChart" class="pmc-chart" role="img" aria-label="Gráfico de condicionamento, fadiga e forma nos últimos 30 dias"></div><div class="four-week-legend pmc-legend"><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#0ea5e9" stroke="none"/></svg>CTL · Condicionamento</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#f59e0b" stroke="none"/></svg>ATL · Fadiga</span><span><svg class="legend-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#22c55e" stroke="none"/></svg>TSB · Forma</span></div>
           </section>
 
 
@@ -2810,7 +2810,15 @@
       try {
         const data=await apiRequest("/api/fitness-fatigue",{method:"GET"});
         if(!data||data.error||!Array.isArray(data.points)||!data.points.length) throw new Error(data?.message||"Sem dados de CTL/ATL disponíveis.");
-        const points=data.points.slice(-90), latest=points[points.length-1];
+        // Exibe somente os últimos 30 dias disponíveis para manter o gráfico legível.
+        const allPoints=data.points.slice().sort((a,b)=>String(a.date||a.day||"").localeCompare(String(b.date||b.day||"")));
+        const latestPoint=allPoints[allPoints.length-1];
+        const latestDate=new Date(String(latestPoint.date||latestPoint.day||latestPoint.start_date||"").slice(0,10)+"T00:00:00Z");
+        const cutoffDate=new Date(latestDate);
+        cutoffDate.setUTCDate(cutoffDate.getUTCDate()-29);
+        const cutoffKey=cutoffDate.toISOString().slice(0,10);
+        const points=allPoints.filter(point=>String(point.date||point.day||point.start_date||"").slice(0,10)>=cutoffKey);
+        const latest=points[points.length-1];
         const ctl=Number(latest.fitness), atl=Number(latest.fatigue), tsb=Number(latest.form);
         if (![ctl,atl,tsb].every(Number.isFinite)) throw new Error("Os dados mais recentes de CTL, ATL ou TSB estão incompletos.");
         $("#pmcCtl").textContent=ctl.toFixed(1); $("#pmcAtl").textContent=atl.toFixed(1); $("#pmcTsb").textContent=tsb.toFixed(1);
@@ -2901,7 +2909,7 @@
         [["fitness","#0ea5e9",yLoad(ctlValues[last])],["fatigue","#f59e0b",yLoad(atlValues[last])],["form","#22c55e",yTsb(tsbValues[last])]].forEach(([key,color,yy])=>{add("circle",{cx:x(last),cy:yy,r:5,fill:color,stroke:"var(--card)","stroke-width":2});});
         const tickCount=Math.min(6,points.length);
         for(let i=0;i<tickCount;i++){const idx=Math.round(i*(points.length-1)/Math.max(1,tickCount-1)),raw=points[idx].date||points[idx].day||points[idx].start_date||"";let label=String(raw);const parsed=new Date(label);if(label&&Number.isFinite(parsed.getTime()))label=parsed.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});else if(label.length>10)label=label.slice(5,10);add("text",{x:x(idx),y:312,fill:"currentColor","fill-opacity":".62","font-size":10,"text-anchor":"middle"},svg,label||("D"+(idx+1)));}
-        chart.replaceChildren(svg);setMessage(message,"Dados atualizados pelo Intervals.icu · "+points.length+" dias","success");
+        chart.replaceChildren(svg);setMessage(message,"Dados atualizados pelo Intervals.icu · últimos 30 dias · "+points.length+" registros","success");
       } catch(error) { chart.replaceChildren();setMessage(message,"Gráfico PMC indisponível: "+error.message,"warning"); }
     }
     $("#refreshPmcButton").addEventListener("click",loadPmc);
