@@ -1255,7 +1255,7 @@
                     <option value="endurance">Resistência</option>
                     <option value="strength">Força</option>
                     <option value="threshold">Limiar</option>
-                    <option value="vo2max">VO₂ máximo</option>
+                    <option value="vo2max" selected>VO₂ máximo</option>
                     <option value="recovery">Recuperação</option>
                     <option value="race">Preparação para prova</option>
                     <option value="general">Condicionamento geral</option>
@@ -1275,25 +1275,25 @@
                   <label for="workoutLocation">Tipo de treino</label>
                   <select id="workoutLocation" name="location" required>
                     <option value="indoor">Indoor</option>
-                    <option value="road">Road</option>
+                    <option value="road" selected>Road</option>
                     <option value="mtb">MTB</option>
                   </select>
                 </div>
 
                 <div class="field">
-                  <label for="sleepDuration">Tempo dormindo (horas)</label>
-                  <input id="sleepDuration" name="sleepDuration" type="number" min="0.25" max="24" step="0.25" required placeholder="Ex.: 7,5">
-                  <small>Digite o total de horas dormidas. Ex.: 7,5 equivale a 7h30.</small>
+                  <label for="sleepDuration">Tempo dormindo (minutos)</label>
+                  <input id="sleepDuration" name="sleepDuration" type="number" min="1" max="1440" step="1" required placeholder="Importado de Sono e saúde">
+                  <small>Preenchido automaticamente com a duração do sono sincronizada em Sono e saúde.</small>
                 </div>
 
                 <div class="field">
                   <label for="restingHR">FC de repouso (bpm)</label>
-                  <input id="restingHR" name="restingHR" type="number" min="25" max="220" required placeholder="Ex.: 52">
+                  <input id="restingHR" name="restingHR" type="number" min="25" max="220" required placeholder="Importado de Sono e saúde">
                 </div>
 
                 <div class="field">
                   <label for="hrvMs">HRV (ms)</label>
-                  <input id="hrvMs" name="hrvMs" type="number" min="0" max="300" required placeholder="Ex.: 65">
+                  <input id="hrvMs" name="hrvMs" type="number" min="0" max="300" required placeholder="Importado de Sono e saúde">
                 </div>
 
                 <div class="field">
@@ -1319,6 +1319,7 @@
                     name="availability"
                     type="text"
                     maxlength="100"
+                    value="1h40"
                     placeholder="Ex.: tenho 1h30 disponível, das 18h às 19h30"
                     autocomplete="off"
                   >
@@ -1334,8 +1335,8 @@
                 <div class="field">
                   <label for="workoutMetric">Sensor usado para controlar o treino</label>
                   <select id="workoutMetric" name="trainingMetric" required>
-                    <option value="heart_rate" selected>Frequência cardíaca (sem medidor de potência)</option>
-                    <option value="power">Potência (medidor de potência)</option>
+                    <option value="heart_rate">Frequência cardíaca (sem medidor de potência)</option>
+                    <option value="power" selected>Potência (medidor de potência)</option>
                   </select>
                   <small>O treino será prescrito conforme o sensor selecionado.</small>
                 </div>
@@ -1347,7 +1348,7 @@
 
                 <div class="field" id="workoutPowerField" hidden>
                   <label for="workoutPower">FTP em watts</label>
-                  <input id="workoutPower" name="ftp" type="number" min="1" max="1000" step="1" placeholder="Ex.: 220">
+                  <input id="workoutPower" name="ftp" type="number" min="1" max="1000" step="1" value="270" placeholder="Ex.: 220">
                 </div>
                 <div class="field full">
                   <label for="workoutNotes">Informações adicionais</label>
@@ -2145,7 +2146,7 @@
         notes: String(formData.get("notes") || "").trim(),
         plannedDate: String(formData.get("plannedDate") || ""),
         recovery: {
-          sleepTotalMinutes: Math.round(Number(String(formData.get("sleepDuration")).replace(",", ".")) * 60),
+          sleepTotalMinutes: Math.round(Number(String(formData.get("sleepDuration")).replace(",", "."))),
           restingHR: Number(formData.get("restingHR")),
           hrvMs: Number(formData.get("hrvMs")),
           wakingFeeling: "normal",
@@ -2919,15 +2920,25 @@
         $("#healthHeartRateValue").textContent = "—";
         $("#healthRestingHeartRateValue").textContent = "—";
         $("#healthHrvValue").textContent = "—";
+        $("#sleepDuration").value = "";
+        $("#restingHR").value = "";
+        $("#hrvMs").value = "";
         $("#healthSyncDetails").textContent = "Ainda não há dados sincronizados.";
         return;
       }
       $("#healthSleepValue").textContent = data.sleepMinutes
         ? Math.floor(data.sleepMinutes / 60) + "h " + (data.sleepMinutes % 60) + "min"
         : "Sem dados";
+      // Preenche os campos do gerador com os mesmos dados exibidos em Sono e saúde.
+      $("#sleepDuration").value = Number.isFinite(Number(data.sleepMinutes)) && Number(data.sleepMinutes) > 0
+        ? String(Math.round(Number(data.sleepMinutes))) : "";
       $("#healthHeartRateValue").textContent = data.averageHeartRate ? data.averageHeartRate + " bpm" : "Sem dados";
       $("#healthRestingHeartRateValue").textContent = data.restingHeartRate ? data.restingHeartRate + " bpm" : "Sem dados";
       $("#healthHrvValue").textContent = data.hrvValue ? data.hrvValue.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " ms" : "Sem dados";
+      $("#restingHR").value = data.restingHeartRate != null && Number.isFinite(Number(data.restingHeartRate)) && Number(data.restingHeartRate) > 0
+        ? String(Math.round(Number(data.restingHeartRate))) : "";
+      $("#hrvMs").value = data.hrvValue != null && Number.isFinite(Number(data.hrvValue)) && Number(data.hrvValue) >= 0
+        ? String(Number(data.hrvValue)) : "";
       const synced = data.syncedAt ? new Date(data.syncedAt).toLocaleString("pt-BR") : "—";
       const hrvDetail = data.hrvValue ? " · HRV: " + (data.hrvMetric || "RMSSD") + (data.hrvDate ? " (" + new Date(data.hrvDate).toLocaleDateString("pt-BR") + ")" : "") : " · HRV ainda sem registro disponível";
       $("#healthSyncDetails").textContent = "Última sincronização: " + synced +
@@ -2961,6 +2972,9 @@
         $("#healthSleepValue").textContent = "—";
         $("#healthHeartRateValue").textContent = "—";
         $("#healthHrvValue").textContent = "—";
+        $("#sleepDuration").value = "";
+        $("#restingHR").value = "";
+        $("#hrvMs").value = "";
         $("#healthSyncDetails").textContent = "Autorize a conexão para importar os dados do Apple Saúde. Pedais continuam vindo da Garmin.";
       }
     }
