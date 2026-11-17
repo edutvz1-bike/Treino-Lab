@@ -52,17 +52,24 @@ async function loadTrainingContext(env) {
           return { value: Number(value), date };
         }).filter(item => Number.isFinite(item.value) && item.value > 0 && item.value <= 250).sort((a,b) => b.date-a.date)[0] || null;
         const sample = latest(samples, ["heartRateVariability.rootMeanSquareOfSuccessiveDifferencesMilliseconds", "rootMeanSquareOfSuccessiveDifferencesMilliseconds"]);
-        const day = latest(daily, ["dailyHeartRateVariability.averageHeartRateVariabilityMilliseconds", "averageHeartRateVariabilityMilliseconds", "dailyHeartRateVariability.deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds"]);
+        const dayAverage = latest(daily, ["dailyHeartRateVariability.averageHeartRateVariabilityMilliseconds", "averageHeartRateVariabilityMilliseconds"]);
+        const dayDeepSleep = latest(daily, ["dailyHeartRateVariability.deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds", "deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds"]);
+        const day = dayAverage && dayDeepSleep
+          ? (dayAverage.date >= dayDeepSleep.date ? { ...dayAverage, metric: "RMSSD diário" } : { ...dayDeepSleep, metric: "RMSSD no sono profundo" })
+          : dayAverage ? { ...dayAverage, metric: "RMSSD diário" }
+            : dayDeepSleep ? { ...dayDeepSleep, metric: "RMSSD no sono profundo" } : null;
         const chosen = sample && day
-          ? (sample.date >= day.date ? { ...sample, metric: "RMSSD" } : { ...day, metric: "RMSSD diário" })
-          : sample ? { ...sample, metric: "RMSSD" }
-            : day ? { ...day, metric: "RMSSD diário" } : null;
+          ? (sample.date >= day.date ? { ...sample, metric: "RMSSD" } : day)
+          : sample ? { ...sample, metric: "RMSSD" } : day;
         const sleep = Array.isArray(health.sleep) ? health.sleep : [];
         const lastSleep = sleep.map(record => {
           const session = record?.sleep || record;
           const minutes = Number(session?.summary?.minutesAsleep ?? session?.summary?.minutes_asleep);
-          return Number.isFinite(minutes) && minutes > 0 ? minutes : null;
-        }).filter(Boolean).at(-1) || null;
+          const end = session?.interval?.endTime || session?.interval?.end_time || session?.endTime || session?.end_time;
+          return Number.isFinite(minutes) && minutes > 0
+            ? { minutes, end: typeof end === "string" ? Date.parse(end) : 0 }
+            : null;
+        }).filter(Boolean).sort((a, b) => b.end - a.end)[0]?.minutes || null;
         context.recovery = {
           hrv: chosen ? Math.round(chosen.value * 10) / 10 : null,
           hrvMetric: chosen?.metric || null,
@@ -173,7 +180,7 @@ function trainingContextText(context) {
     lines.push("- Dados de CTL/ATL/TSB indisponíveis.");
   }
   if (context.notes.length) lines.push("LIMITAÇÕES DA CONSULTA:", ...context.notes.map(note => "- " + note));
-  lines.push("Use esses dados como contexto real. Não confunda potência média com Normalized Power. Não invente campos ausentes. Os dados representam atividades concluídas, não necessariamente treinos planejados. Ao recomendar o treino de amanhã, considere a sequência e carga recente, CTL/ATL/TSB e descanso; se faltarem dados importantes (sensação de recuperação, dor, sono ou disponibilidade), pergunte ou deixe a recomendação condicional.");
+  lines.push("Use esses dados como contexto real. Não confunda potência média com Normalized Power. Não invente campos ausentes. Interprete HRV com cautela: compare preferencialmente com a linha de base individual e tendências, nunca conclua prontidão ou fadiga por uma medição isolada. Os dados representam atividades concluídas, não necessariamente treinos planejados. Ao recomendar o treino de amanhã, considere a sequência e carga recente, CTL/ATL/TSB e descanso; se faltarem dados importantes (sensação de recuperação, dor, sono ou disponibilidade), pergunte ou deixe a recomendação condicional.");
   return lines.join("\n");
 }
 
