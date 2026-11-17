@@ -35,16 +35,37 @@ export async function onRequestGet({ env }) {
     const sleep = Array.isArray(data.sleep) ? data.sleep : [];
     const heartRate = Array.isArray(data.heartRate) ? data.heartRate : [];
 
-    const intervals = sleep.map(record => {
-      const start = timestamp(firstValue(record, ["startTime", "start_time", "sleep.interval.start_time.physical_time", "sleep.interval.start_time"]));
-      const end = timestamp(firstValue(record, ["endTime", "end_time", "sleep.interval.end_time.physical_time", "sleep.interval.end_time"]));
-      const type = String(firstValue(record, ["type", "sleep.type", "sleep.stage"]) || "").toUpperCase();
-      return { start, end, type };
-    }).filter(item => item.start && item.end && item.end > item.start);
+    // A API entrega cada ponto de sono dentro de record.sleep.
+    // Usa a sessão mais recente e, quando disponível, o resumo oficial do Google.
+    const sessions = sleep.map(record => {
+      const session = record?.sleep || record;
+      const interval = session?.interval || {};
+      const start = timestamp(interval.startTime || interval.start_time || session.startTime || session.start_time);
+      const end = timestamp(interval.endTime || interval.end_time || session.endTime || session.end_time);
+      const summaryMinutes = Number(session?.summary?.minutesAsleep ?? session?.summary?.minutes_asleep);
+      let stageMinutes = 0;
+      for (const stage of Array.isArray(session?.stages) ? session.stages : []) {
+        const type = String(stage?.type || "").toUpperCase();
+        if (!["DEEP", "LIGHT", "REM", "ASLEEP"].includes(type)) continue;
+        const stageStart = timestamp(stage.startTime || stage.start_time);
+        const stageEnd = timestamp(stage.endTime || stage.end_time);
+        if (stageStart && stageEnd && stageEnd > stageStart) {
+          stageMinutes += (stageEnd - stageStart) / 60000;
+        }
+      }
+      const duration = Number.isFinite(summaryMinutes) && summaryMinutes > 0
+        ? summaryMinutes
+        : stageMinutes > 0
+          ? stageMinutes
+          : start && end && end > start
+            ? (end - start) / 60000
+            : null;
+      return { start, end, duration };
+    }).filter(item => item.duration > 0);
 
-    const stages = intervals.filter(item => /DEEP|LIGHT|REM|CORE/.test(item.type));
-    const sleepIntervals = stages.length ? stages : intervals;
-    const sleepMinutes = sleepIntervals.reduce((total, item) => total + (item.end - item.start) / 60000, 0);
+    sessions.sort((a, b) => (b.end || b.start || 0) - (a.end || a.start || 0));
+    const latestSleep = sessions[0] || null;
+    const sleepMinutes = latestSleep ? Math.round(latestSleep.duration) : null;
 
     const bpmValues = heartRate.map(record => Number(firstValue(record, [
       "heartRate.beatsPerMinute", "beatsPerMinute", "value.beatsPerMinute"
