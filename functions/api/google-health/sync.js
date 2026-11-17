@@ -60,9 +60,10 @@ export async function onRequestPost({ env }) {
     if (!credentials.refreshToken) throw new Error("A autorização do Google não está disponível. Conecte novamente.");
     const accessToken = await getAccessToken(env, credentials.refreshToken);
 
-    const [sleep, heartRate, heartRateVariability, dailyHeartRateVariability] = await Promise.all([
+    const [sleep, heartRate, dailyRestingHeartRate, heartRateVariability, dailyHeartRateVariability] = await Promise.all([
       fetchDataType(accessToken, "sleep", 25, 8),
       fetchDataType(accessToken, "heart-rate", 1000, 4),
+      fetchDataType(accessToken, "daily-resting-heart-rate", 100, 8),
       fetchDataType(accessToken, "heart-rate-variability", 100, 8),
       fetchDataType(accessToken, "daily-heart-rate-variability", 100, 8)
     ]);
@@ -72,6 +73,7 @@ export async function onRequestPost({ env }) {
       source: "Google Health / Apple Health",
       sleep,
       heartRate,
+      dailyRestingHeartRate,
       heartRateVariability,
       dailyHeartRateVariability
     };
@@ -79,6 +81,7 @@ export async function onRequestPost({ env }) {
       syncedAt: result.syncedAt,
       sleepRecords: sleep.length,
       heartRateRecords: heartRate.length,
+      restingHeartRateRecords: dailyRestingHeartRate.length,
       hrvRecords: heartRateVariability.length,
       dailyHrvRecords: dailyHeartRateVariability.length
     }));
@@ -89,6 +92,7 @@ export async function onRequestPost({ env }) {
       syncedAt: result.syncedAt,
       sleepRecords: sleep.length,
       heartRateRecords: heartRate.length,
+      restingHeartRateRecords: dailyRestingHeartRate.length,
       hrvRecords: heartRateVariability.length,
       dailyHrvRecords: dailyHeartRateVariability.length
     });
