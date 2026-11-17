@@ -2874,20 +2874,35 @@
       window.location.reload();
     });
 
-    // Modo público: abre a plataforma sem exigir e-mail ou senha.
-    // O acesso aos dados ainda depende das permissões configuradas nas APIs.
-    $("#loginSection").hidden = true;
-    $("#logoutButton").hidden = true;
-    showDashboard({ name: "Ciclista" });
-    syncMobileNavigation();
-    loadWeeklyStats();
-    loadDailyStats();
-    loadFourWeekSummary();
-    loadPmc();
+    // A plataforma só abre após validação da sessão segura no backend.
+    async function initializePrivateApp() {
+      $("#loginSection").hidden = false;
+      $("#dashboardSection").hidden = true;
+      $("#logoutButton").hidden = true;
+      try {
+        const response = await fetch("/api/session", { credentials: "same-origin", cache: "no-store" });
+        const data = response.ok ? await response.json() : null;
+        if (!data?.authenticated) {
+          showLogin();
+          return;
+        }
+        showDashboard(data.user || { name: "Ciclista" });
+        $("#logoutButton").hidden = false;
+        syncMobileNavigation();
+        await Promise.all([loadWeeklyStats(), loadDailyStats(), loadFourWeekSummary(), loadPmc()]);
+      } catch {
+        showLogin();
+        setMessage($("#globalMessage"), "Não foi possível validar sua sessão. Entre novamente.", "error");
+      }
+    }
 
-    $("#logoutButton").addEventListener("click", () => {
-      // Não há sessão de usuário para encerrar no modo público.
+    $("#logoutButton").addEventListener("click", async () => {
+      try { await apiRequest("/api/logout", { method: "POST" }); } catch {}
+      showLogin();
+      $("#logoutButton").hidden = true;
     });
+
+    initializePrivateApp();
   </script>
 </body>
 </html>
