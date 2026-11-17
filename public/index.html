@@ -1035,7 +1035,7 @@
     <div id="globalMessage" class="notice" role="status" aria-live="polite"></div>
 
     <!-- ACESSO -->
-    <section id="loginSection" class="card" hidden>
+    <section id="loginSection" class="card">
       <div class="landing-intro"><p class="eyebrow">TREINO INTELIGENTE PARA CICLISTAS</p><h1>Entenda sua evolução. Treine com propósito.</h1><p class="landing-copy">Dados de treino, inteligência artificial e sessões estruturadas em um só lugar.</p><div class="feature-grid"><article class="feature-card"><span class="feature-icon">📈</span><h3>Intervals.icu</h3><p>Conecte seus dados e acompanhe sua carga de treino.</p></article><article class="feature-card"><span class="feature-icon">🤖</span><h3>Análise com IA</h3><p>Transforme seus pedais em informações práticas.</p></article><article class="feature-card"><span class="feature-icon">🚴</span><h3>Treinos estruturados</h3><p>Gere sessões alinhadas ao seu objetivo e recuperação.</p></article></div></div>
       <div class="card-heading">
         <div>
@@ -1184,7 +1184,7 @@
     </section>
 
     <!-- ÁREA AUTENTICADA -->
-    <section id="dashboardSection">
+    <section id="dashboardSection" hidden>
       <div class="landing-intro dashboard-intro"><h1>Bem-vindo ao Treino Lab</h1><p class="landing-copy">Sua evolução conectada a dados, inteligência artificial e treinos estruturados.</p><div class="feature-grid"><article class="feature-card"><span class="feature-icon">↗</span><h3>Intervals.icu</h3><p>Dados de carga, evolução e forma.</p></article><article class="feature-card"><span class="feature-icon">✦</span><h3>Análise com IA</h3><p>Insights objetivos sobre seus pedais.</p></article><article class="feature-card"><span class="feature-icon">⚡</span><h3>Treinos estruturados</h3><p>Sessões adaptadas ao seu objetivo.</p></article></div></div>
       
       <div class="profile-summary" id="dashboardHome">
@@ -1706,6 +1706,7 @@
       state.token = data.token || data.accessToken || null;
 
       showDashboard(user);
+      $("#logoutButton").hidden = false;
       syncMobileNavigation();
       await Promise.all([loadWeeklyStats(), loadFourWeekSummary(), loadPmc()]);
 
