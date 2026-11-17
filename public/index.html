@@ -1411,6 +1411,22 @@
         </div>
 
         <aside class="side-column">
+          <!-- INTEGRAÇÃO DE SONO E SAÚDE -->
+          <section class="card" id="healthIntegrationSection" data-nav-section="health" aria-labelledby="healthIntegrationTitle">
+            <div class="card-heading"><div><h2 id="healthIntegrationTitle">😴 Sono e saúde</h2><p>Dados do Apple Saúde sincronizados pelo Google Health</p></div></div>
+            <div id="healthIntegrationMessage" class="notice" role="status" aria-live="polite"></div>
+            <p id="healthConnectionStatus" class="muted small">Verificando conexão...</p>
+            <div class="weekly-stats-grid">
+              <div class="weekly-stat"><span>Último sono registrado</span><strong id="healthSleepValue">—</strong></div>
+              <div class="weekly-stat"><span>Frequência cardíaca média</span><strong id="healthHeartRateValue">—</strong></div>
+            </div>
+            <p id="healthSyncDetails" class="muted small">Os pedais e exercícios continuam vindo da Garmin.</p>
+            <div class="actions">
+              <button id="connectHealthButton" class="btn btn-primary" type="button">Conectar Apple Saúde</button>
+              <button id="syncHealthButton" class="btn btn-outline" type="button" disabled>Sincronizar agora</button>
+            </div>
+          </section>
+
           <!-- ESTATÍSTICAS DIÁRIAS E CALENDÁRIO GARMIN -->
           <section class="card daily-stats-card" id="dailyStatsSection" data-nav-section="stats" aria-labelledby="dailyStatsTitle">
             <div class="card-heading"><div><h2 id="dailyStatsTitle">📊 Estatística do dia</h2><p id="dailyStatsSubtitle">Histórico mensal</p></div><button id="refreshDailyStatsButton" class="btn btn-outline" type="button">↻</button></div>
@@ -1708,7 +1724,15 @@
       showDashboard(user);
       $("#logoutButton").hidden = false;
       syncMobileNavigation();
-      await Promise.all([loadWeeklyStats(), loadDailyStats(), loadFourWeekSummary(), loadPmc()]);
+      await Promise.all([loadWeeklyStats(), loadDailyStats(), loadFourWeekSummary(), loadPmc(), loadGoogleHealthStatus()]);
+        const healthResult = new URLSearchParams(window.location.search);
+        if (healthResult.get("googleHealth") === "connected") {
+          setMessage($("#healthIntegrationMessage"), "Apple Saúde conectado com sucesso. Faça a primeira sincronização.", "success");
+          history.replaceState({}, "", window.location.pathname);
+        } else if (healthResult.has("googleHealthError")) {
+          setMessage($("#healthIntegrationMessage"), "Não foi possível concluir a conexão com o Google (" + healthResult.get("googleHealthError") + "). Tente conectar novamente.", "error");
+          history.replaceState({}, "", window.location.pathname);
+        }
 
       return data;
     }
@@ -2887,6 +2911,64 @@
     });
     $("#refreshPageButton").addEventListener("click", () => {
       window.location.reload();
+    });
+
+    async function loadGoogleHealthSummary() {
+      const response = await fetch("/api/google-health/summary", { credentials: "same-origin", cache: "no-store" });
+      const data = response.ok ? await response.json() : null;
+      if (!data || data.error) throw new Error("Não foi possível consultar os dados de sono e saúde.");
+      if (!data.available) {
+        $("#healthSleepValue").textContent = "—";
+        $("#healthHeartRateValue").textContent = "—";
+        $("#healthSyncDetails").textContent = "Ainda não há dados sincronizados.";
+        return;
+      }
+      $("#healthSleepValue").textContent = data.sleepMinutes
+        ? Math.floor(data.sleepMinutes / 60) + "h " + (data.sleepMinutes % 60) + "min"
+        : "Sem dados";
+      $("#healthHeartRateValue").textContent = data.averageHeartRate ? data.averageHeartRate + " bpm" : "Sem dados";
+      const synced = data.syncedAt ? new Date(data.syncedAt).toLocaleString("pt-BR") : "—";
+      $("#healthSyncDetails").textContent = "Última sincronização: " + synced +
+        " · " + data.sleepRecords + " registros de sono · " + data.heartRateRecords + " registros cardíacos. Pedais continuam vindo da Garmin.";
+    }
+
+    async function loadGoogleHealthStatus() {
+      const response = await fetch("/api/google-health/status", { credentials: "same-origin", cache: "no-store" });
+      const data = response.ok ? await response.json() : null;
+      if (!data || !data.configured) throw new Error("Configuração do Google Health incompleta na Cloudflare.");
+      const connected = Boolean(data.connected);
+      $("#healthConnectionStatus").textContent = connected
+        ? "Conta Google Health conectada."
+        : "Conta ainda não conectada.";
+      $("#connectHealthButton").textContent = connected ? "Reconectar Apple Saúde" : "Conectar Apple Saúde";
+      $("#syncHealthButton").disabled = !connected;
+      if (connected) await loadGoogleHealthSummary();
+      else {
+        $("#healthSleepValue").textContent = "—";
+        $("#healthHeartRateValue").textContent = "—";
+        $("#healthSyncDetails").textContent = "Autorize a conexão para importar os dados do Apple Saúde. Pedais continuam vindo da Garmin.";
+      }
+    }
+
+    $("#connectHealthButton").addEventListener("click", () => {
+      window.location.href = "/api/google-health/connect";
+    });
+
+    $("#syncHealthButton").addEventListener("click", async () => {
+      const button = $("#syncHealthButton");
+      setLoading(button, true, "Sincronizando...");
+      setMessage($("#healthIntegrationMessage"), "Buscando dados de sono e frequência cardíaca...");
+      try {
+        const result = await apiRequest("/api/google-health/sync", { method: "POST" });
+        await loadGoogleHealthSummary();
+        setMessage($("#healthIntegrationMessage"),
+          "Sincronização concluída: " + result.sleepRecords + " registros de sono e " + result.heartRateRecords + " registros cardíacos.",
+          "success");
+      } catch (error) {
+        setMessage($("#healthIntegrationMessage"), error.message, "error");
+      } finally {
+        setLoading(button, false);
+      }
     });
 
     // A plataforma só abre após validação da sessão segura no backend.
