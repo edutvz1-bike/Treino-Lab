@@ -2999,6 +2999,21 @@
         $("#logoutButton").hidden = false;
         syncMobileNavigation();
         await Promise.all([loadWeeklyStats(), loadDailyStats(), loadFourWeekSummary(), loadPmc()]);
+        // Após o retorno do OAuth, a sessão já está validada. Carrega a integração
+        // separadamente para que uma falha no Google Health não bloqueie o dashboard.
+        try {
+          await loadGoogleHealthStatus();
+        } catch (error) {
+          setMessage($("#healthIntegrationMessage"), error.message || "Não foi possível consultar a conexão com o Google Health.", "warning");
+        }
+        const healthResult = new URLSearchParams(window.location.search);
+        if (healthResult.get("googleHealth") === "connected") {
+          setMessage($("#healthIntegrationMessage"), "Apple Saúde conectado. Verificando a sincronização dos dados...", "success");
+          history.replaceState({}, "", window.location.pathname);
+        } else if (healthResult.has("googleHealthError")) {
+          setMessage($("#healthIntegrationMessage"), "Não foi possível concluir a conexão com o Google (" + healthResult.get("googleHealthError") + "). Tente conectar novamente.", "error");
+          history.replaceState({}, "", window.location.pathname);
+        }
       } catch {
         showLogin();
         setMessage($("#globalMessage"), "Não foi possível validar sua sessão. Entre novamente.", "error");
