@@ -23,6 +23,14 @@ function timestamp(value) {
   return null;
 }
 
+function hrvTimestamp(record, daily = false) {
+  const value = daily
+    ? firstValue(record, ["dailyHeartRateVariability.date", "date"])
+    : firstValue(record, ["heartRateVariability.sampleTime.physicalTime", "sampleTime.physicalTime", "heartRateVariability.sampleTime", "sampleTime"]);
+  if (value && typeof value === "object") return timestamp(value.physicalTime || value.date);
+  return timestamp(value);
+}
+
 export async function onRequestGet({ env }) {
   if (!env.HEALTH_KV) return json({ error: "missing_config" }, 500);
   const [stored, lastSync] = await Promise.all([
@@ -34,9 +42,9 @@ export async function onRequestGet({ env }) {
     const data = JSON.parse(stored);
     const sleep = Array.isArray(data.sleep) ? data.sleep : [];
     const heartRate = Array.isArray(data.heartRate) ? data.heartRate : [];
+    const hrvSamples = Array.isArray(data.heartRateVariability) ? data.heartRateVariability : [];
+    const dailyHrv = Array.isArray(data.dailyHeartRateVariability) ? data.dailyHeartRateVariability : [];
 
-    // A API entrega cada ponto de sono dentro de record.sleep.
-    // Usa a sessão mais recente e, quando disponível, o resumo oficial do Google.
     const sessions = sleep.map(record => {
       const session = record?.sleep || record;
       const interval = session?.interval || {};
@@ -49,20 +57,14 @@ export async function onRequestGet({ env }) {
         if (!["DEEP", "LIGHT", "REM", "ASLEEP"].includes(type)) continue;
         const stageStart = timestamp(stage.startTime || stage.start_time);
         const stageEnd = timestamp(stage.endTime || stage.end_time);
-        if (stageStart && stageEnd && stageEnd > stageStart) {
-          stageMinutes += (stageEnd - stageStart) / 60000;
-        }
+        if (stageStart && stageEnd && stageEnd > stageStart) stageMinutes += (stageEnd - stageStart) / 60000;
       }
       const duration = Number.isFinite(summaryMinutes) && summaryMinutes > 0
         ? summaryMinutes
-        : stageMinutes > 0
-          ? stageMinutes
-          : start && end && end > start
-            ? (end - start) / 60000
-            : null;
+        : stageMinutes > 0 ? stageMinutes
+          : start && end && end > start ? (end - start) / 60000 : null;
       return { start, end, duration };
     }).filter(item => item.duration > 0);
-
     sessions.sort((a, b) => (b.end || b.start || 0) - (a.end || a.start || 0));
     const latestSleep = sessions[0] || null;
     const sleepMinutes = latestSleep ? Math.round(latestSleep.duration) : null;
@@ -74,13 +76,50 @@ export async function onRequestGet({ env }) {
       ? Math.round(bpmValues.reduce((sum, value) => sum + value, 0) / bpmValues.length)
       : null;
 
+    const sampleValues = hrvSamples.map(record => ({
+      value: Number(firstValue(record, [
+        "heartRateVariability.rootMeanSquareOfSuccessiveDifferencesMilliseconds",
+        "rootMeanSquareOfSuccessiveDifferencesMilliseconds",
+        "heartRateVariability.standardDeviationMilliseconds",
+        "standardDeviationMilliseconds"
+      ])),
+      date: hrvTimestamp(record, false),
+      metric: firstValue(record, [
+        "heartRateVariability.rootMeanSquareOfSuccessiveDifferencesMilliseconds",
+        "rootMeanSquareOfSuccessiveDifferencesMilliseconds"
+      ]) != null ? "RMSSD" : "SDNN"
+    })).filter(item => Number.isFinite(item.value) && item.value > 0 && item.value <= 250)
+      .sort((a, b) => (b.date || 0) - (a.date || 0));
+
+    const dailyValues = dailyHrv.map(record => ({
+      value: Number(firstValue(record, [
+        "dailyHeartRateVariability.averageHeartRateVariabilityMilliseconds",
+        "averageHeartRateVariabilityMilliseconds",
+        "dailyHeartRateVariability.deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds",
+        "deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds"
+      ])),
+      date: hrvTimestamp(record, true),
+      metric: firstValue(record, [
+        "dailyHeartRateVariability.averageHeartRateVariabilityMilliseconds",
+        "averageHeartRateVariabilityMilliseconds"
+      ]) != null ? "RMSSD médio diário" : "RMSSD no sono profundo"
+    })).filter(item => Number.isFinite(item.value) && item.value > 0 && item.value <= 250)
+      .sort((a, b) => (b.date || 0) - (a.date || 0));
+
+    const latestHrv = sampleValues[0] || dailyValues[0] || null;
+
     return json({
       available: true,
       syncedAt: data.syncedAt || null,
       sleepRecords: sleep.length,
-      sleepMinutes: sleepMinutes > 0 ? Math.round(sleepMinutes) : null,
+      sleepMinutes: sleepMinutes > 0 ? sleepMinutes : null,
       averageHeartRate,
-      heartRateRecords: heartRate.length
+      heartRateRecords: heartRate.length,
+      hrvValue: latestHrv ? Math.round(latestHrv.value * 10) / 10 : null,
+      hrvMetric: latestHrv?.metric || null,
+      hrvDate: latestHrv?.date ? new Date(latestHrv.date).toISOString() : null,
+      hrvRecords: hrvSamples.length,
+      dailyHrvRecords: dailyHrv.length
     });
   } catch {
     return json({ error: "invalid_stored_data" }, 500);
