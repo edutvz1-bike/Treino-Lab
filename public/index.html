@@ -1201,6 +1201,22 @@
 
       <div class="layout">
         <div class="main-column">
+          <!-- INTEGRAÇÃO DE SONO E SAÚDE -->
+<section class="card" id="healthIntegrationSection" data-nav-section="health" aria-labelledby="healthIntegrationTitle">
+            <div class="card-heading"><div><h2 id="healthIntegrationTitle">😴 Sono e saúde</h2><p>Dados do Apple Saúde sincronizados pelo Google Health</p></div></div>
+            <div id="healthIntegrationMessage" class="notice" role="status" aria-live="polite"></div>
+            <p id="healthConnectionStatus" class="muted small">Verificando conexão...</p>
+            <div class="weekly-stats-grid">
+              <div class="weekly-stat"><span>Último sono registrado</span><strong id="healthSleepValue">—</strong></div>
+              <div class="weekly-stat"><span>Frequência cardíaca média</span><strong id="healthHeartRateValue">—</strong></div>
+            </div>
+            <p id="healthSyncDetails" class="muted small">Os pedais e exercícios continuam vindo da Garmin.</p>
+            <div class="actions">
+              <button id="connectHealthButton" class="btn btn-primary" type="button">Conectar Apple Saúde</button>
+              <button id="syncHealthButton" class="btn btn-outline" type="button" disabled>Sincronizar agora</button>
+            </div>
+          </section>
+
           <!-- ANÁLISE DO ÚLTIMO TREINO -->
           <section class="card" id="lastRideAnalysisCard" data-nav-section="analyze">
             <div class="card-heading">
@@ -1411,22 +1427,6 @@
         </div>
 
         <aside class="side-column">
-          <!-- INTEGRAÇÃO DE SONO E SAÚDE -->
-          <section class="card" id="healthIntegrationSection" data-nav-section="health" aria-labelledby="healthIntegrationTitle">
-            <div class="card-heading"><div><h2 id="healthIntegrationTitle">😴 Sono e saúde</h2><p>Dados do Apple Saúde sincronizados pelo Google Health</p></div></div>
-            <div id="healthIntegrationMessage" class="notice" role="status" aria-live="polite"></div>
-            <p id="healthConnectionStatus" class="muted small">Verificando conexão...</p>
-            <div class="weekly-stats-grid">
-              <div class="weekly-stat"><span>Último sono registrado</span><strong id="healthSleepValue">—</strong></div>
-              <div class="weekly-stat"><span>Frequência cardíaca média</span><strong id="healthHeartRateValue">—</strong></div>
-            </div>
-            <p id="healthSyncDetails" class="muted small">Os pedais e exercícios continuam vindo da Garmin.</p>
-            <div class="actions">
-              <button id="connectHealthButton" class="btn btn-primary" type="button">Conectar Apple Saúde</button>
-              <button id="syncHealthButton" class="btn btn-outline" type="button" disabled>Sincronizar agora</button>
-            </div>
-          </section>
-
           <!-- ESTATÍSTICAS DIÁRIAS E CALENDÁRIO GARMIN -->
           <section class="card daily-stats-card" id="dailyStatsSection" data-nav-section="stats" aria-labelledby="dailyStatsTitle">
             <div class="card-heading"><div><h2 id="dailyStatsTitle">📊 Estatística do dia</h2><p id="dailyStatsSubtitle">Histórico mensal</p></div><button id="refreshDailyStatsButton" class="btn btn-outline" type="button">↻</button></div>
