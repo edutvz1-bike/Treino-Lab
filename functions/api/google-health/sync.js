@@ -60,21 +60,27 @@ export async function onRequestPost({ env }) {
     if (!credentials.refreshToken) throw new Error("A autorização do Google não está disponível. Conecte novamente.");
     const accessToken = await getAccessToken(env, credentials.refreshToken);
 
-    const [sleep, heartRate] = await Promise.all([
+    const [sleep, heartRate, heartRateVariability, dailyHeartRateVariability] = await Promise.all([
       fetchDataType(accessToken, "sleep", 25, 8),
-      fetchDataType(accessToken, "heart-rate", 1000, 4)
+      fetchDataType(accessToken, "heart-rate", 1000, 4),
+      fetchDataType(accessToken, "heart-rate-variability", 100, 8),
+      fetchDataType(accessToken, "daily-heart-rate-variability", 100, 8)
     ]);
 
     const result = {
       syncedAt: new Date().toISOString(),
       source: "Google Health / Apple Health",
       sleep,
-      heartRate
+      heartRate,
+      heartRateVariability,
+      dailyHeartRateVariability
     };
     await env.HEALTH_KV.put("google-health:last-sync", JSON.stringify({
       syncedAt: result.syncedAt,
       sleepRecords: sleep.length,
-      heartRateRecords: heartRate.length
+      heartRateRecords: heartRate.length,
+      hrvRecords: heartRateVariability.length,
+      dailyHrvRecords: dailyHeartRateVariability.length
     }));
     await env.HEALTH_KV.put("google-health:data", JSON.stringify(result));
 
@@ -82,7 +88,9 @@ export async function onRequestPost({ env }) {
       success: true,
       syncedAt: result.syncedAt,
       sleepRecords: sleep.length,
-      heartRateRecords: heartRate.length
+      heartRateRecords: heartRate.length,
+      hrvRecords: heartRateVariability.length,
+      dailyHrvRecords: dailyHeartRateVariability.length
     });
   } catch (error) {
     return json({ error: "sync_failed", message: error.message || "Falha ao sincronizar os dados de saúde." }, 502);
