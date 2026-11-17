@@ -1227,6 +1227,7 @@
             <div class="weekly-stats-grid">
               <div class="weekly-stat"><span>Último sono registrado</span><strong id="healthSleepValue">—</strong></div>
               <div class="weekly-stat"><span>Frequência cardíaca média</span><strong id="healthHeartRateValue">—</strong></div>
+              <div class="weekly-stat"><span>Frequência cardíaca de repouso</span><strong id="healthRestingHeartRateValue">—</strong></div>
               <div class="weekly-stat"><span>Variabilidade cardíaca (HRV)</span><strong id="healthHrvValue">—</strong></div>
             </div>
             <p id="healthSyncDetails" class="muted small">Os pedais e exercícios continuam vindo da Garmin.</p>
@@ -2922,6 +2923,7 @@
       if (!data.available) {
         $("#healthSleepValue").textContent = "—";
         $("#healthHeartRateValue").textContent = "—";
+        $("#healthRestingHeartRateValue").textContent = "—";
         $("#healthHrvValue").textContent = "—";
         $("#healthSyncDetails").textContent = "Ainda não há dados sincronizados.";
         return;
@@ -2930,11 +2932,12 @@
         ? Math.floor(data.sleepMinutes / 60) + "h " + (data.sleepMinutes % 60) + "min"
         : "Sem dados";
       $("#healthHeartRateValue").textContent = data.averageHeartRate ? data.averageHeartRate + " bpm" : "Sem dados";
+      $("#healthRestingHeartRateValue").textContent = data.restingHeartRate ? data.restingHeartRate + " bpm" : "Sem dados";
       $("#healthHrvValue").textContent = data.hrvValue ? data.hrvValue.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " ms" : "Sem dados";
       const synced = data.syncedAt ? new Date(data.syncedAt).toLocaleString("pt-BR") : "—";
       const hrvDetail = data.hrvValue ? " · HRV: " + (data.hrvMetric || "RMSSD") + (data.hrvDate ? " (" + new Date(data.hrvDate).toLocaleDateString("pt-BR") + ")" : "") : " · HRV ainda sem registro disponível";
       $("#healthSyncDetails").textContent = "Última sincronização: " + synced +
-        " · " + data.sleepRecords + " registros de sono · " + data.heartRateRecords + " registros cardíacos" + hrvDetail + ". Pedais continuam vindo da Garmin.";
+        " · " + data.sleepRecords + " registros de sono · " + data.heartRateRecords + " registros cardíacos · " + (data.restingHeartRateRecords || 0) + " registros de FC de repouso" + hrvDetail + ". Pedais continuam vindo da Garmin.";
     }
 
     async function loadGoogleHealthStatus() {
