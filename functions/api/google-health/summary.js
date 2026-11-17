@@ -27,7 +27,12 @@ function hrvTimestamp(record, daily = false) {
   const value = daily
     ? firstValue(record, ["dailyHeartRateVariability.date", "date"])
     : firstValue(record, ["heartRateVariability.sampleTime.physicalTime", "sampleTime.physicalTime", "heartRateVariability.sampleTime", "sampleTime"]);
-  if (value && typeof value === "object") return timestamp(value.physicalTime || value.date);
+  if (value && typeof value === "object") {
+    if (value.physicalTime || value.date) return timestamp(value.physicalTime || value.date);
+    if (Number.isFinite(Number(value.year))) {
+      return Date.UTC(Number(value.year), Math.max(0, Number(value.month || 1) - 1), Number(value.day || 1));
+    }
+  }
   return timestamp(value);
 }
 
