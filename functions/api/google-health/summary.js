@@ -83,7 +83,9 @@ export async function onRequestGet({ env }) {
       : null;
 
     const restingValues = restingHeartRate.map(record => {
-      const date = firstValue(record, ["dailyRestingHeartRate.date", "date"]);
+      const date = firstValue(record, [
+        "dailyRestingHeartRate.date", "daily_resting_heart_rate.date", "date"
+      ]);
       let dateMs = null;
       if (date && typeof date === "object" && Number.isFinite(Number(date.year))) {
         dateMs = Date.UTC(Number(date.year), Math.max(0, Number(date.month || 1) - 1), Number(date.day || 1));
@@ -91,7 +93,12 @@ export async function onRequestGet({ env }) {
         dateMs = timestamp(date);
       }
       return {
-        value: Number(firstValue(record, ["dailyRestingHeartRate.beatsPerMinute", "beatsPerMinute"])),
+        value: Number(firstValue(record, [
+          "dailyRestingHeartRate.beatsPerMinute",
+          "daily_resting_heart_rate.beats_per_minute",
+          "beatsPerMinute",
+          "beats_per_minute"
+        ])),
         date: dateMs
       };
     }).filter(item => Number.isFinite(item.value) && item.value >= 25 && item.value <= 220)
