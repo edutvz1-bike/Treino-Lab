@@ -147,7 +147,7 @@ ${metricInstructions}
 
 REGRAS DO OBJETIVO SELECIONADO:
 ${goalInstructions}
-REGRA DE HIERARQUIA: respeite obrigatoriamente as seleções explícitas do atleta na caixa "Gerar meu treino". O objetivo escolhido define o tipo de estímulo; nível define a complexidade e a dose; tipo de treino define o contexto; sensor define a unidade/alvo; disponibilidade limita a duração; informações adicionais devem ser consideradas. A recuperação pode reduzir a carga ou recomendar descanso por segurança, mas nunca deve transformar silenciosamente o objetivo escolhido em outro tipo de sessão. Se houver conflito, explique brevemente no campo "Por que hoje".
+REGRA DE PRIORIDADE MÁXIMA — INFORMAÇÕES ADICIONAIS: o texto escrito pelo atleta em "Informações adicionais" é a instrução personalizada de maior prioridade e deve ser respeitado integralmente em todos os aspectos do treino. Leia cada orientação e transforme-a em requisitos concretos para a sessão. Essas instruções prevalecem sobre TODOS os campos selecionáveis do formulário, inclusive objetivo, nível, modalidade/tipo de treino, sensor, disponibilidade e data, sempre que houver conflito. Não ignore, minimize, substitua nem interprete como mera sugestão nenhuma orientação escrita. Os campos do formulário servem como padrão apenas para os aspectos que não forem definidos ou contrariados pelo texto. Se o texto determinar outro objetivo, intensidade, duração, estrutura, modalidade ou forma de prescrição, siga o texto e explique qualquer incompatibilidade relevante em "Por que hoje". Só deixe de cumprir uma instrução quando ela for impossível com os dados disponíveis ou representar risco à segurança; nesse caso, explique claramente o motivo e não invente dados.
 
 RELATÓRIO / CONTEXTO:
 ${contexto || "Não há relatório de treino disponível."}
@@ -163,7 +163,7 @@ CHECK-IN DE HOJE:
 - Disponibilidade informada: ${preferenciasTreino || "Não informada"}. Não ultrapasse o tempo disponível.
 - Informações adicionais do atleta: ${String(body.notes || "").trim().slice(0, 2000) || "Nenhuma"}. Considere-as explicitamente quando forem pertinentes.
 
-Gere um treino adaptado ao objetivo selecionado, ao nível, ao tipo de treino, ao sensor, à disponibilidade, às informações adicionais, à recuperação e ao histórico disponível. Para Indoor, priorize blocos claros que possam ser seguidos no rolo; para Road, considere segurança e terreno; para MTB, considere terreno variável e controle técnico. Não invente histórico ausente, métricas, zonas, prova ou dados de desempenho. Não prescreva automaticamente alta intensidade se a recuperação não justificar. Nunca inclua um estímulo incompatível com o objetivo escolhido.
+Gere um treino que cumpra prioritariamente TODAS as instruções de "Informações adicionais". Em caso de conflito, essas instruções prevalecem sobre objetivo, nível, modalidade, sensor, disponibilidade e data selecionados nos campos. Use os demais campos somente onde o texto não estabelecer uma orientação diferente. Considere também a recuperação e o histórico disponível. Adapte as instruções à realidade do ciclismo e à segurança: não invente histórico, métricas, zonas, prova ou dados de desempenho; se faltar um dado indispensável ou houver risco, explique a limitação em vez de presumir. Para Indoor, Road ou MTB, considere o contexto correspondente apenas quando isso não contrariar as instruções adicionais.
 
 FORMATO OBRIGATÓRIO — mantenha conciso, sem saudação, sem repetir os dados do check-in e sem parágrafos longos:
 ## [Nome curto do treino]
@@ -270,9 +270,10 @@ Evite explicações fisiológicas extensas, avisos repetidos, títulos numerados
 Você é o treinador-chefe e revisor técnico do Pedal Coach. Faça uma auditoria rigorosa do treino.
 Compare o treino com as seleções e dados abaixo. Não presuma dados ausentes nem invente métricas.
 CRITÉRIOS:
-- O objetivo escolhido deve determinar o estímulo principal. Recuperação deve ser realmente regenerativa, preferencialmente Z1, sem intervalos intensos.
-- Nível, modalidade e disponibilidade devem ser respeitados; a duração total não pode exceder o tempo informado.
-- Use exclusivamente a unidade selecionada: potência (watts/%FTP) OU frequência cardíaca (bpm/zonas de FC). Não misture alvos incompatíveis.
+- As instruções escritas em "Informações adicionais" têm prioridade absoluta sobre os campos selecionáveis. Se houver conflito, avalie o treino pelo que o atleta escreveu, e não rejeite ou altere o treino apenas por divergir de objetivo, nível, modalidade, sensor, disponibilidade ou data selecionados.
+- Quando as informações adicionais não definirem algo, use os campos selecionados como padrão. Respeite limites de segurança e não invente dados; explique qualquer impossibilidade.
+- A duração deve seguir a instrução adicional quando ela definir duração. Caso contrário, respeite a disponibilidade selecionada.
+- Use a unidade indicada nas informações adicionais quando houver instrução explícita; ela prevalece sobre o sensor selecionado. Se o texto não definir unidade, use exclusivamente a unidade selecionada: potência (watts/%FTP) OU frequência cardíaca (bpm/zonas de FC). Não misture alvos incompatíveis.
 - Só use valores de FTP/FTHR fornecidos. Não crie zonas ou números sem base.
 - Sono, FC de repouso, HRV, fadiga e sensação só podem ser considerados quando disponíveis. Dados ausentes devem ser tratados como desconhecidos.
 - Deve haver Aquecimento, Treino principal e Desaquecimento separados, nessa ordem, exceto quando recomendar descanso total de forma explícita.
